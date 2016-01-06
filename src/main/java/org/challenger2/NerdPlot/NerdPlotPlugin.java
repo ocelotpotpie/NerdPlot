@@ -26,7 +26,6 @@ public class NerdPlotPlugin extends JavaPlugin {
 	private WorldEditPlugin we;
 	private Map<String, NerdPlotCommand> plotCommands;
 
-
     @Override
     public void onEnable() {
 		Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
@@ -49,11 +48,14 @@ public class NerdPlotPlugin extends JavaPlugin {
 
 		CommandCreate commandCreate = new CommandCreate(this);
 		plotCommands.put(commandCreate.getName(), commandCreate);
+		
+		loadConfig();
 
     }
     
     @Override
     public void onDisable() {
+    	saveMyConfig();
     	plotCommands = null;
     	wg = null;
     	we = null;
@@ -109,6 +111,14 @@ public class NerdPlotPlugin extends JavaPlugin {
     		}
     	}
     	sender.sendMessage(ChatColor.GREEN + "/" + cmdName + " help");
+    }
+    
+    public void loadConfig() {
+    	saveDefaultConfig();
+    }
+
+    public void saveMyConfig() {
+    	saveConfig();
     }
 
     public String getCmdName() {

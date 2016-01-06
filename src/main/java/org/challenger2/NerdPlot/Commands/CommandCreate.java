@@ -1,5 +1,7 @@
 package org.challenger2.NerdPlot.Commands;
 
+import java.util.Map;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -7,10 +9,8 @@ import org.bukkit.entity.Player;
 import org.challenger2.NerdPlot.NerdPlotPlugin;
 
 import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 import com.sk89q.worldedit.bukkit.selections.Selection;
-import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -37,9 +37,10 @@ public class CommandCreate extends NerdPlotCommand {
     	Player player = (Player)sender;
     	
     	// Is World Guard Enabled?
-		RegionContainer container = plugin.getWG().getRegionContainer();
-		RegionManager regions = container.get(player.getWorld());
-		if (regions == null) {
+		//RegionContainer container = plugin.getWG().getRegionContainer();
+		//RegionManager regions = container.get(player.getWorld());
+    	RegionManager manager = plugin.getWG().getRegionManager(player.getWorld());
+		if (manager == null) {
 			sender.sendMessage(ChatColor.RED + "WorldGuard is not enabled in this world");
 			return;
 		}
@@ -49,11 +50,12 @@ public class CommandCreate extends NerdPlotCommand {
     		printUsage(sender);
     		return;
     	}
-    	String regionName = args[0];
-    	if(!ProtectedRegion.isValidId(regionName)) {
+    	if(!ProtectedRegion.isValidId(args[0])) {
     		sender.sendMessage(ChatColor.RED + "Invalid region name");
     	}
-
+    	
+    	// Generate region name
+    	String regionName = generatePlotName(args[0], manager);
 
 		// Create a region from the players selection
 		Selection selection = plugin.getWE().getSelection(player);
@@ -73,9 +75,28 @@ public class CommandCreate extends NerdPlotCommand {
 		ProtectedRegion protectedRegion = new ProtectedCuboidRegion(regionName, min, max);
 
 		// Put the region into world guard
-		regions.addRegion(protectedRegion);
+		manager.addRegion(protectedRegion);
 
 		sender.sendMessage(ChatColor.GREEN + "Plot " + regionName + " Created");
+	}
+
+	/**
+	 * Generate a region name
+	 * 
+	 * @param prefix plot name prefix
+	 * @param world world the plot is in
+	 * @return
+	 */
+	private String generatePlotName(String prefix, RegionManager manager) {
+		Map<String,ProtectedRegion> map = manager.getRegions();
+
+		for (int i = 0; i < 10000; i++) {
+			String name = String.format("%s_%04d", prefix, i);
+			if (!map.containsKey(name)) {
+				return name;
+			}
+		}
+		return null;
 	}
 
 	public void printUsage(CommandSender sender) {
