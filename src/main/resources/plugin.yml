@@ -3,7 +3,7 @@ main: org.challenger2.NerdPlot.NerdPlotPlugin
 version: ${project.version}
 description: ${project.description}
 website: ${project.url}
-depend: [WorldGuard, WorldEdit]
+depend: [WorldGuard, WorldEdit, WGCustomFlags]
 authors: [Challenger2]
 commands:
   nerdplot:

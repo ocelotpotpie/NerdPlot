@@ -1,14 +1,16 @@
 package org.challenger2.NerdPlot;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.challenger2.NerdPlot.Commands.CommandClaim;
 import org.challenger2.NerdPlot.Commands.CommandCreate;
 import org.challenger2.NerdPlot.Commands.NerdPlotCommand;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -16,6 +18,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+
+import com.mewin.WGCustomFlags.WGCustomFlagsPlugin;
 
 public class NerdPlotPlugin extends JavaPlugin {
 
@@ -25,6 +29,8 @@ public class NerdPlotPlugin extends JavaPlugin {
 	private WorldGuardPlugin wg;
 	private WorldEditPlugin we;
 	private Map<String, NerdPlotCommand> plotCommands;
+	
+	public static StateFlag NERD_PLOT = new StateFlag("nerd-plot", true);
 
     @Override
     public void onEnable() {
@@ -44,13 +50,25 @@ public class NerdPlotPlugin extends JavaPlugin {
 		}
 		we = (WorldEditPlugin)plugin;
 
-		plotCommands = new HashMap<String, NerdPlotCommand>();
+		plugin = getServer().getPluginManager().getPlugin("WGCustomFlags");
+		if (plugin == null || !(plugin instanceof WGCustomFlagsPlugin)) {
+			logSevere("Failed to load WGCustomFlags");
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
+		WGCustomFlagsPlugin cf;
+		cf = (WGCustomFlagsPlugin)plugin;
+		cf.addCustomFlag(NERD_PLOT);
+
+		plotCommands = new LinkedHashMap<String, NerdPlotCommand>();
 
 		CommandCreate commandCreate = new CommandCreate(this);
 		plotCommands.put(commandCreate.getName(), commandCreate);
+
+		CommandClaim commandClaim = new CommandClaim(this);
+		plotCommands.put(commandClaim.getName(), commandClaim);
 		
 		loadConfig();
-
     }
     
     @Override

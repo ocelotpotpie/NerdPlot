@@ -11,18 +11,19 @@ import org.challenger2.NerdPlot.NerdPlotPlugin;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class CommandCreate extends NerdPlotCommand {
 
-	private final String name = "create";
-	private final String usage = "create <region_prefix>";
-	private final String permission = "nerdplot.create";
-
 	public CommandCreate(NerdPlotPlugin plugin) {
-		super(plugin);
+		super(plugin,
+		    "create",
+		    "create <region_prefix>",
+		    "nerdplot.create"
+		);
 	}
 
 	@Override
@@ -73,6 +74,7 @@ public class CommandCreate extends NerdPlotCommand {
 		loc = selection.getMaximumPoint();
 		BlockVector max = new BlockVector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 		ProtectedRegion protectedRegion = new ProtectedCuboidRegion(regionName, min, max);
+		protectedRegion.setFlag(NerdPlotPlugin.NERD_PLOT, StateFlag.State.ALLOW);
 
 		// Put the region into world guard
 		manager.addRegion(protectedRegion);
@@ -99,22 +101,5 @@ public class CommandCreate extends NerdPlotCommand {
 		return null;
 	}
 
-	public void printUsage(CommandSender sender) {
-		sender.sendMessage(ChatColor.GREEN + plugin.getName() + " " + usage);
-	}
-	
-	@Override
-	public String getName() {
-		return name;
-	}
 
-	@Override
-	public String getUsage() {
-		return usage;
-	}
-
-	@Override
-	public String getPermission() {
-		return permission;
-	}
 }
