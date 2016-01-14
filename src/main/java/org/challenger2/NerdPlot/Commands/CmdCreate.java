@@ -11,17 +11,17 @@ import org.challenger2.NerdPlot.NerdPlotPlugin;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 import com.sk89q.worldedit.bukkit.selections.Selection;
-import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion.CircularInheritanceException;
 
-public class CommandCreate extends NerdPlotCommand {
+public class CmdCreate extends NerdPlotCommand {
 
-	public CommandCreate(NerdPlotPlugin plugin) {
+	public CmdCreate(NerdPlotPlugin plugin) {
 		super(plugin,
 		    "create",
-		    "create <region_prefix>",
+		    "create <plot_name> [<parent_name>]",
 		    "nerdplot.create"
 		);
 	}
@@ -47,16 +47,28 @@ public class CommandCreate extends NerdPlotCommand {
 		}
 
 		// Do we have the right arguments?
-    	if (args.length != 1) {
+    	if (args.length != 1 && args.length != 2) {
     		printUsage(sender);
     		return;
     	}
+
+    	ProtectedRegion parent = null;
+		if (args.length >= 2) {
+			String parentName = args[1];
+			parent = manager.getRegion(parentName);
+			if (parent == null) {
+				sender.sendMessage(ChatColor.RED + "Parent region does not exist");
+				return;
+			}
+		}
+
+    	// Generate region name
+    	String plotName = generatePlotName(args[0], manager);
+
     	if(!ProtectedRegion.isValidId(args[0])) {
     		sender.sendMessage(ChatColor.RED + "Invalid region name");
+    		return;
     	}
-    	
-    	// Generate region name
-    	String regionName = generatePlotName(args[0], manager);
 
 		// Create a region from the players selection
 		Selection selection = plugin.getWE().getSelection(player);
@@ -73,13 +85,23 @@ public class CommandCreate extends NerdPlotCommand {
 		BlockVector min = new BlockVector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 		loc = selection.getMaximumPoint();
 		BlockVector max = new BlockVector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-		ProtectedRegion protectedRegion = new ProtectedCuboidRegion(regionName, min, max);
-		protectedRegion.setFlag(NerdPlotPlugin.NERD_PLOT, StateFlag.State.ALLOW);
+		ProtectedRegion protectedRegion = new ProtectedCuboidRegion(plotName, min, max);
+		
+		if (parent != null) {
+			try {
+				protectedRegion.setParent(parent);
+			} catch (CircularInheritanceException e) {
+				e.printStackTrace();
+				return; // This shouldn't be possible
+			}
+		}
 
 		// Put the region into world guard
 		manager.addRegion(protectedRegion);
+		plugin.addPlot(player.getWorld().getName(), plotName);
+		plugin.saveMyConfig();
 
-		sender.sendMessage(ChatColor.GREEN + "Plot " + regionName + " Created");
+		sender.sendMessage(ChatColor.GREEN + "Plot " + plotName + " Created");
 	}
 
 	/**

@@ -6,13 +6,12 @@ import org.bukkit.entity.Player;
 import org.challenger2.NerdPlot.NerdPlotPlugin;
 
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
-public class CommandClaim extends NerdPlotCommand {
+public class CmdClaim extends NerdPlotCommand {
 
-	public CommandClaim(NerdPlotPlugin plugin) {
+	public CmdClaim(NerdPlotPlugin plugin) {
 		super(plugin,
 		    "claim",
 			"claim (While standing in a plot)",
@@ -34,6 +33,7 @@ public class CommandClaim extends NerdPlotCommand {
     		return;
     	}
     	Player player = (Player)sender;
+    	String worldName = player.getWorld().getName();
     	
     	// Is World Guard Enabled?
     	RegionManager manager = plugin.getWG().getRegionManager(player.getWorld());
@@ -41,12 +41,12 @@ public class CommandClaim extends NerdPlotCommand {
 			sender.sendMessage(ChatColor.RED + "WorldGuard is not enabled in this world");
 			return;
 		}
-		
+
 		// Find the first plot that we can claim.
 		ApplicableRegionSet regions = manager.getApplicableRegions(player.getLocation());
 		ProtectedRegion plot = null;
 		for (ProtectedRegion check : regions) {
-			if(check.getFlag(NerdPlotPlugin.NERD_PLOT) == StateFlag.State.ALLOW) {
+			if (plugin.isPlot(worldName, check.getId())) {
 				if(check.getOwners().getPlayers().size() == 0) {
 					// We found what we are looking for
 					plot = check;
@@ -60,8 +60,12 @@ public class CommandClaim extends NerdPlotCommand {
 			return;
 		}
 		
+		//if (plugin.getAllPlayerPlots(player.getName()).size() >= plugin.maxPlots())
 		//TODO Make sure the player has max X plots
+
 		plot.getOwners().addPlayer(player.getName());
+		plugin.setPlotOwner(worldName, plot.getId(), player.getName());
+		plugin.saveMyConfig();
 
 		sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
 	}
