@@ -1,26 +1,29 @@
-package org.challenger2.NerdPlot.Commands;
+package org.challenger2.NerdPlot;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.challenger2.NerdPlot.NerdPlotPlugin;
 
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class CmdClaim extends NerdPlotCommand {
+	
+	private final String permission = "nerdplot.claim";
 
 	public CmdClaim(NerdPlotPlugin plugin) {
-		super(plugin,
-		    "claim",
-			"claim (While standing in a plot)",
-			"nerdplot.claim"
-			);
+		super(plugin, "claim");
 	}
 
 	@Override
 	public void execute(CommandSender sender, String[] args) {
+		
+		if (!sender.hasPermission(permission)) {
+			plugin.printUsage(sender);
+			return;
+		}
+
 		if (args.length > 0) {
 			printUsage(sender);
 			return;
@@ -68,5 +71,12 @@ public class CmdClaim extends NerdPlotCommand {
 		plugin.saveMyConfig();
 
 		sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
+	}
+
+	@Override
+	public void printUsage(CommandSender sender) {
+		if(sender.hasPermission(permission)) {
+			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " claim (While standing in a plot)");
+		}
 	}
 }

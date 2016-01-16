@@ -1,4 +1,4 @@
-package org.challenger2.NerdPlot.Commands;
+package org.challenger2.NerdPlot;
 
 import java.util.Map;
 
@@ -6,7 +6,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.challenger2.NerdPlot.NerdPlotPlugin;
 
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
@@ -17,17 +16,20 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion.CircularInheritanceException;
 
 public class CmdCreate extends NerdPlotCommand {
+	
+	private final String permission = "nerdplot.create";
 
 	public CmdCreate(NerdPlotPlugin plugin) {
-		super(plugin,
-		    "create",
-		    "create <plot_name> [<parent_name>]",
-		    "nerdplot.create"
-		);
+		super(plugin, "create");
 	}
 
 	@Override
 	public void execute(CommandSender sender, String[] args) {
+		
+		if (!sender.hasPermission(permission)) {
+			plugin.printUsage(sender);
+			return;
+		}
 
 		// Checkout all the prerequisites
 		// Are we a player?
@@ -123,5 +125,10 @@ public class CmdCreate extends NerdPlotCommand {
 		return null;
 	}
 
-
+	@Override
+	public void printUsage(CommandSender sender) {
+		if(sender.hasPermission(permission)) {
+			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + this.name + " <plot_name> [<parent_name>]");
+		}
+	}
 }
