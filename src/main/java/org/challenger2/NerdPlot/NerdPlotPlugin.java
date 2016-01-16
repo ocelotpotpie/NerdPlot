@@ -2,10 +2,19 @@ package org.challenger2.NerdPlot;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.util.DomainInputResolver;
+import com.sk89q.worldguard.protection.util.DomainInputResolver.UserLocatorPolicy;
+import com.sk89q.worldguard.util.profile.resolver.ProfileService;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -21,6 +32,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 public class NerdPlotPlugin extends JavaPlugin {
@@ -31,7 +43,10 @@ public class NerdPlotPlugin extends JavaPlugin {
 	private WorldGuardPlugin wg;
 	private WorldEditPlugin we;
 	private Map<String, NerdPlotCommand> plotCommands;
-	private Map<String, Map<String, String>> worldPlots;
+	private Map<String, Map<String, UUID>> worldPlots;
+
+	public final ListeningExecutorService executor =
+	        MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
 	/**
 	 * Enable the plugin.
@@ -66,9 +81,10 @@ public class NerdPlotPlugin extends JavaPlugin {
 		addCommand(new CmdList(this));
 		addCommand(new CmdMax(this));
 		addCommand(new CmdCreate(this));
+		addCommand(new CmdRemove(this));
 		addCommand(new CmdAddOwner(this));
 		addCommand(new CmdRemoveOwner(this));
-		addCommand(new CmdCleanup(this));
+		addCommand(new CmdClean(this));
 		addCommand(new CmdVersion(this));
     }
     
@@ -143,20 +159,24 @@ public class NerdPlotPlugin extends JavaPlugin {
     /**
      * Load config from disk
      */
-    public void loadConfig() {
+    public synchronized void loadConfig() {
     	this.saveDefaultConfig();
-    	
-    	worldPlots = new HashMap<String, Map<String,String>>();
+
+    	worldPlots = new HashMap<String, Map<String, UUID>>();
     	ConfigurationSection worlds = this.getConfig().getConfigurationSection("worlds");
     	if (worlds != null) {
 	    	for (String world : worlds.getKeys(false)) {
 	    		ConfigurationSection plotSection = worlds.getConfigurationSection(world);
 	    		if (plotSection != null) {
-		    		Map<String, String> plotMap = new HashMap<String, String>();
+		    		Map<String, UUID> plotMap = new HashMap<String, UUID>();
 		    		worldPlots.put(world, plotMap);
 		    		for (String plot : plotSection.getKeys(false)) {
 		    			String owner = plotSection.getString(plot);
-		    			plotMap.put(plot, owner);
+		    			try {
+		    				plotMap.put(plot, UUID.fromString(owner));
+		    			} catch (IllegalArgumentException e) {
+		    				plotMap.put(plot, null);
+		    			}
 		    		}
 	    		}
 	    	}
@@ -166,14 +186,19 @@ public class NerdPlotPlugin extends JavaPlugin {
     /**
      * Save config to disk
      */
-    public void saveMyConfig() {
+    public synchronized void saveMyConfig() {
     	
     	ConfigurationSection worlds = this.getConfig().createSection("worlds");
     	for (String world : worldPlots.keySet()) {
-    		Map<String, String> plotMap = worldPlots.get(world);
+    		Map<String, UUID> plotMap = worldPlots.get(world);
     		ConfigurationSection plots = worlds.createSection(world);
     		for (String plot : plotMap.keySet()) {
-    			plots.set(plot, plotMap.get(plot));
+    			UUID uuid = plotMap.get(plot);
+    			if (uuid == null) {
+    				plots.set(plot, "");
+    			} else {
+    				plots.set(plot, uuid.toString());
+    			}
     		}
     	}
     	this.getConfig().set("Foo", "Bar");
@@ -205,11 +230,13 @@ public class NerdPlotPlugin extends JavaPlugin {
      * @param world
      * @param plot
      */
-    public void addPlot(String world, String plot) {
-    	if (!worldPlots.containsKey(world)) {
-    		worldPlots.put(world,  new HashMap<String, String>());
+    public synchronized void addPlot(String world, String plot) {
+    	Map<String, UUID> plotMap = worldPlots.get(world);
+    	if (plotMap == null) {
+    		plotMap = new HashMap<String, UUID>();
+    		worldPlots.put(world, plotMap);
     	}
-    	worldPlots.get(world).put(plot, "");
+    	plotMap.put(plot, null);
     }
 
     /**
@@ -218,8 +245,8 @@ public class NerdPlotPlugin extends JavaPlugin {
      * @param world
      * @param plot
      */
-    public void removePlot(String world, String plot) {
-    	Map<String, String> plotMap = worldPlots.get(world);
+    public synchronized void removePlot(String world, String plot) {
+    	Map<String, UUID> plotMap = worldPlots.get(world);
     	if (plotMap != null) {
     		plotMap.remove(plot);
     		if (plotMap.isEmpty()) {
@@ -235,8 +262,8 @@ public class NerdPlotPlugin extends JavaPlugin {
      * @param plot
      * @return
      */
-    public boolean isPlot(String world, String plot) {
-    	Map<String, String> plotMap = worldPlots.get(world);
+    public synchronized boolean isPlot(String world, String plot) {
+    	Map<String, UUID> plotMap = worldPlots.get(world);
     	if (plotMap != null) {
     		return plotMap.containsKey(plot);
     	}
@@ -244,46 +271,29 @@ public class NerdPlotPlugin extends JavaPlugin {
     }
     
     /**
-     * Set the owner of a plot in the database
+     * Set the owner of a plot in the database.
+     * Set the owner to null to make the plot /claim able
      * 
      * @param world
      * @param plot
      * @param player
      */
-    public void setPlotOwner(String world, String plot, String player) {
-    	Map<String, String> plotMap = worldPlots.get(world);
+    public synchronized void setPlotOwner(String world, String plot, UUID owner) {
+    	Map<String, UUID> plotMap = worldPlots.get(world);
     	if (plotMap != null) {
-    		plotMap.put(plot, player);
-    	}
-    }
-    
-    /**
-     * Remove an owner from the plot database
-     * 
-     * @param world
-     * @param plot
-     * @param player
-     */
-    public void removePlotOwner(String world, String plot) {
-    	Map<String, String> plotMap = worldPlots.get(world);
-    	if (plotMap != null) {
-    		plotMap.put(plot, "");
+    		plotMap.put(plot, owner);
     	}
     }
 
-    public String getPlotOwner(String world, String plot) {
-    	Map<String, String> plotMap = worldPlots.get(world);
+    public synchronized UUID getPlotOwner(String world, String plot) {
+    	Map<String, UUID> plotMap = worldPlots.get(world);
     	if (plotMap == null) {
     		return null;
     	} else {
-    		String owner = plotMap.get(plot);
-    		if (owner == "") {
-    			return null;
-    		}
-    		return owner;
+    		return plotMap.get(plot);
     	}
     }
-  
+
     /**
      * Return a list of all the plots a player has
      * 
@@ -292,19 +302,22 @@ public class NerdPlotPlugin extends JavaPlugin {
      * @param player
      * @return
      */
-    public List<String> getAllPlayerPlots(String player) {
+    public synchronized List<String> getAllPlayerPlots(UUID player) {
     	List<String> list = new LinkedList<String>();
+    	if (player == null) {
+    		return list;
+    	}
 
-    	for (Map<String, String> plotMap : worldPlots.values()) {
+    	for (Map<String, UUID> plotMap : worldPlots.values()) {
     		for (String plot : plotMap.keySet()) {
-    			if (plotMap.get(plot).equalsIgnoreCase(player)) {
+    			if (player.equals(plotMap.get(plot))) {
     				list.add(plot);
     			}
     		}
     	}
     	return list;
     }
-    
+ 
     /**
      * Clean the worldPlots database.
      * 
@@ -315,11 +328,11 @@ public class NerdPlotPlugin extends JavaPlugin {
      *   We fix by removing the player from the plot.
      *   
      */
-    public void cleanupDatabase(CommandSender sender) {
+    public synchronized void cleanupDatabase(CommandSender sender) {
     	for (String worldName : worldPlots.keySet()) {
     		
     		// List of all plots and their owners for this world
-    		Map<String, String> plotMap = worldPlots.get(worldName);
+    		Map<String, UUID> plotMap = worldPlots.get(worldName);
  
     		// Lookup the bukkit world with this name
     		List<World> worlds = this.getServer().getWorlds();
@@ -333,6 +346,9 @@ public class NerdPlotPlugin extends JavaPlugin {
     		if (world == null) {
     			// World does not exist. Delete it
     			worldPlots.remove(worldName);
+    			if (sender != null) {
+    				sender.sendMessage(ChatColor.RED + "Removing world: " + worldName);
+    			}
     		} else {
     			RegionManager manager = wg.getRegionManager(world);
     			
@@ -348,15 +364,22 @@ public class NerdPlotPlugin extends JavaPlugin {
     						sender.sendMessage(ChatColor.RED + "Removed plot " + worldName + ":" + plot);
     					}
     				} else {
-    					String ownerName = plotMap.get(plot);
-    					if (ownerName.equals("")) {
+    					UUID uuid = plotMap.get(plot);
+    					if (uuid == null) {
     						// Ignore the empty string owner
     						continue;
     					}
-    					if (!rg.getOwners().contains(ownerName)) {
+    					if (!rg.getOwners().contains(uuid)) {
     						// This region has a new owner. Remove the old one from the plotdb
-    						plotMap.put(plot, "");
+    						plotMap.put(plot, null);
     						if(sender != null) {
+    							Player p = this.getServer().getPlayer(uuid);
+    							String ownerName;
+    							if (p == null) {
+    								ownerName = "<unknown>";
+    							} else {
+    								ownerName = p.getName();
+    							}
     							sender.sendMessage(ChatColor.RED + "Removed owner \"" + ownerName + "\" from plot " + worldName + ":" + plot);
     						}
     					}
@@ -368,6 +391,19 @@ public class NerdPlotPlugin extends JavaPlugin {
     		}
     	}
     }
+	
+	public void lookupPlayerUUID(String name, FutureCallback<DefaultDomain> callback) {
+		// The below is copied from SK89q docs on getting owner names
+		// We have to use it or UUIDs will be displayed in Minecraft instead of player names
+		String[] input = new String[] { name };
+		ProfileService profiles = wg.getProfileService();
+		DomainInputResolver resolver = new DomainInputResolver(profiles, input);
+		resolver.setLocatorPolicy(UserLocatorPolicy.UUID_ONLY);
+		ListenableFuture<DefaultDomain> future = this.executor.submit(resolver);
+
+		// Add a callback using Guava
+		Futures.addCallback(future, callback);
+	}
 
     public String getCmdName() {
     	return cmdName;

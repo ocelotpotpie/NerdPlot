@@ -3,12 +3,12 @@ package org.challenger2.NerdPlot;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-public class CmdCleanup extends NerdPlotCommand {
+public class CmdClean extends NerdPlotCommand {
 
-	private final String permission = "nerdplot.cleanup";
+	private final String permission = "nerdplot.clean";
 
-	public CmdCleanup(NerdPlotPlugin plugin) {
-		super(plugin, "cleanup");
+	public CmdClean(NerdPlotPlugin plugin) {
+		super(plugin, "clean");
 	}
 
 	@Override

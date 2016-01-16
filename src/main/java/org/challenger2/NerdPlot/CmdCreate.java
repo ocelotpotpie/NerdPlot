@@ -88,7 +88,7 @@ public class CmdCreate extends NerdPlotCommand {
 		loc = selection.getMaximumPoint();
 		BlockVector max = new BlockVector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 		ProtectedRegion protectedRegion = new ProtectedCuboidRegion(plotName, min, max);
-		
+
 		if (parent != null) {
 			try {
 				protectedRegion.setParent(parent);

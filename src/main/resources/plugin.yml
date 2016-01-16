@@ -4,7 +4,7 @@ version: ${project.version}
 description: ${project.description}
 website: ${project.url}
 depend: [WorldGuard, WorldEdit]
-authors: ${project.author}
+authors: [${project.author}]
 commands:
   nerdplot:
     description: NerdPlot Commands
@@ -22,11 +22,13 @@ permissions:
     description: Set the maximum number of plots any player can have
   nerdplot.create:
     description: Create a new plot
+  nerdplot.remove:
+    description: Remove a plot
   nerdplot.addowner:
     description: Set the owner to a free plot (Bypasses nerdplot.max)
   nerdplot.removeowner:
     description: Remove a plot owner, making the plot free to /claim
-  nerdplot.cleanup:
+  nerdplot.clean:
     description: Find any inconsistencies between the /plot database and World Guard
   nerdplot.version:
     description: Print version number
