@@ -24,7 +24,7 @@ permissions:
     description: Create a new plot
   nerdplot.remove:
     description: Remove a plot
-  nerdplot.addowner:
+  nerdplot.setowner:
     description: Set the owner to a free plot (Bypasses nerdplot.max)
   nerdplot.removeowner:
     description: Remove a plot owner, making the plot free to /claim

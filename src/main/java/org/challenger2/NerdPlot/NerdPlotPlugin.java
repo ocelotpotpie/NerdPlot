@@ -17,7 +17,7 @@ import com.sk89q.worldguard.protection.util.DomainInputResolver.UserLocatorPolic
 import com.sk89q.worldguard.util.profile.resolver.ProfileService;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -82,7 +82,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 		addCommand(new CmdMax(this));
 		addCommand(new CmdCreate(this));
 		addCommand(new CmdRemove(this));
-		addCommand(new CmdAddOwner(this));
+		addCommand(new CmdSetOwner(this));
 		addCommand(new CmdRemoveOwner(this));
 		addCommand(new CmdClean(this));
 		addCommand(new CmdVersion(this));
@@ -162,13 +162,13 @@ public class NerdPlotPlugin extends JavaPlugin {
     public synchronized void loadConfig() {
     	this.saveDefaultConfig();
 
-    	worldPlots = new HashMap<String, Map<String, UUID>>();
+    	worldPlots = new TreeMap<String, Map<String, UUID>>();
     	ConfigurationSection worlds = this.getConfig().getConfigurationSection("worlds");
     	if (worlds != null) {
 	    	for (String world : worlds.getKeys(false)) {
 	    		ConfigurationSection plotSection = worlds.getConfigurationSection(world);
 	    		if (plotSection != null) {
-		    		Map<String, UUID> plotMap = new HashMap<String, UUID>();
+		    		Map<String, UUID> plotMap = new TreeMap<String, UUID>();
 		    		worldPlots.put(world, plotMap);
 		    		for (String plot : plotSection.getKeys(false)) {
 		    			String owner = plotSection.getString(plot);
@@ -233,7 +233,7 @@ public class NerdPlotPlugin extends JavaPlugin {
     public synchronized void addPlot(String world, String plot) {
     	Map<String, UUID> plotMap = worldPlots.get(world);
     	if (plotMap == null) {
-    		plotMap = new HashMap<String, UUID>();
+    		plotMap = new TreeMap<String, UUID>();
     		worldPlots.put(world, plotMap);
     	}
     	plotMap.put(plot, null);

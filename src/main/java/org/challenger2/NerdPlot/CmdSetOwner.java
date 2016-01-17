@@ -12,12 +12,12 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
-public class CmdAddOwner extends NerdPlotCommand {
+public class CmdSetOwner extends NerdPlotCommand {
 
-	private final String permission = "nerdplot.addowner";
+	private final String permission = "nerdplot.setowner";
 
-	public CmdAddOwner(NerdPlotPlugin plugin) {
-		super(plugin, "addowner");
+	public CmdSetOwner(NerdPlotPlugin plugin) {
+		super(plugin, "setowner");
 	}
 
 	@Override

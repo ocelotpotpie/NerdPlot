@@ -74,6 +74,11 @@ public class CmdClaim extends NerdPlotCommand {
 			return;
 		}
 
+		if (plugin.getPlotOwner(worldName, plot.getId()) != null){
+			sender.sendMessage(ChatColor.RED + "This plot is already taken");
+			return;
+		}
+
 		// Get player ID via callback
 		plugin.lookupPlayerUUID(playerName, new FutureCallback<DefaultDomain>() {
 
