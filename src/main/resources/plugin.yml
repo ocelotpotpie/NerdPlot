@@ -14,6 +14,8 @@ permissions:
     description: Claim a plot
   nerdplot.list:
     description: List plots you own
+  nerdplot.info:
+    description: Shows information about the current plot
   nerdplot.listany:
     description: List plots owned by anyone
   nerdplot.max:

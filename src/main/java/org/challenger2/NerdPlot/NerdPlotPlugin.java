@@ -78,6 +78,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 		// Add commands
 		plotCommands = new LinkedHashMap<String, NerdPlotCommand>();
 		addCommand(new CmdClaim(this));
+		addCommand(new CmdInfo(this));
 		addCommand(new CmdList(this));
 		addCommand(new CmdMax(this));
 		addCommand(new CmdCreate(this));

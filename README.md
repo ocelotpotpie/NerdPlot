@@ -11,6 +11,9 @@ Claim the plot you are standing in
 #### /nerdplot list
 Name all the plots you are in. You can use worldguard /region commands to find out more about your plots (such as where they are).
 
+#### /nerdplot info
+Shows information about the plot you are standing in
+
 #### /nerdplot max
 Shows the maximum number of plots you are allowed to have
 
