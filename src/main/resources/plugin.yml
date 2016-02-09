@@ -30,7 +30,13 @@ permissions:
     description: Set the owner to a free plot (Bypasses nerdplot.max)
   nerdplot.removeowner:
     description: Remove a plot owner, making the plot free to /claim
+  nerdplot.createarea:
+    description: Permission to create new plot areas
+  nerdplot.removearea:
+    description: Permission to remove a plot area
   nerdplot.clean:
     description: Find any inconsistencies between the /plot database and World Guard
+  nerdplot.reload:
+    description: Reload configuration
   nerdplot.version:
     description: Print version number

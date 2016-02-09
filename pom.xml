@@ -4,7 +4,7 @@
 
   <groupId>org.challenger2</groupId>
   <artifactId>NerdPlot</artifactId>
-  <version>0.0-SNAPSHOT</version>
+  <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Simple Plot Manager</description>
   <name>NerdPlot</name>

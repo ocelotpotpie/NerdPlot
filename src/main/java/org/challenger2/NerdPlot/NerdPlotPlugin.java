@@ -2,33 +2,20 @@ package org.challenger2.NerdPlot;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.domains.DefaultDomain;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.protection.util.DomainInputResolver;
-import com.sk89q.worldguard.protection.util.DomainInputResolver.UserLocatorPolicy;
-import com.sk89q.worldguard.util.profile.resolver.ProfileService;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.TreeMap;
-import java.util.Iterator;
+import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -43,10 +30,8 @@ public class NerdPlotPlugin extends JavaPlugin {
 	private WorldGuardPlugin wg;
 	private WorldEditPlugin we;
 	private Map<String, NerdPlotCommand> plotCommands;
-	private Map<String, Map<String, UUID>> worldPlots;
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-	public final ListeningExecutorService executor =
-	        MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
 	/**
 	 * Enable the plugin.
@@ -73,9 +58,10 @@ public class NerdPlotPlugin extends JavaPlugin {
 		}
 		we = (WorldEditPlugin)plugin;
 
-		loadConfig();
+		this.saveDefaultConfig();
+		this.getConfig().set("fileFormatVersion", "1.0"); // Set the format version for future use
 
-		// Add commands
+		// Add commands (in the order we want USAGE to pring)
 		plotCommands = new LinkedHashMap<String, NerdPlotCommand>();
 		addCommand(new CmdClaim(this));
 		addCommand(new CmdInfo(this));
@@ -85,26 +71,31 @@ public class NerdPlotPlugin extends JavaPlugin {
 		addCommand(new CmdRemove(this));
 		addCommand(new CmdSetOwner(this));
 		addCommand(new CmdRemoveOwner(this));
+		addCommand(new CmdCreateArea(this));
+		addCommand(new CmdRemoveArea(this));
 		addCommand(new CmdClean(this));
+		addCommand(new CmdReload(this));
 		addCommand(new CmdVersion(this));
     }
+    
     
     private void addCommand(NerdPlotCommand cmd) {
     	plotCommands.put(cmd.getName(), cmd);
     }
 
+    
     /**
      * Shutdown our plugin
      */
     @Override
     public void onDisable() {
-    	saveMyConfig();
-    	worldPlots = null;
+    	this.saveConfig();
     	plotCommands = null;
     	wg = null;
     	we = null;
     }
 
+    
     /**
      * Process user commands
      */
@@ -144,6 +135,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 
     	return true;
     }
+    
 
     /**
      * Print usage of all commands
@@ -157,164 +149,281 @@ public class NerdPlotPlugin extends JavaPlugin {
     	sender.sendMessage(ChatColor.GREEN + "/" + cmdName + " help");
     }
 
-    /**
-     * Load config from disk
-     */
-    public synchronized void loadConfig() {
-    	this.saveDefaultConfig();
-
-    	worldPlots = new TreeMap<String, Map<String, UUID>>();
-    	ConfigurationSection worlds = this.getConfig().getConfigurationSection("worlds");
-    	if (worlds != null) {
-	    	for (String world : worlds.getKeys(false)) {
-	    		ConfigurationSection plotSection = worlds.getConfigurationSection(world);
-	    		if (plotSection != null) {
-		    		Map<String, UUID> plotMap = new TreeMap<String, UUID>();
-		    		worldPlots.put(world, plotMap);
-		    		for (String plot : plotSection.getKeys(false)) {
-		    			String owner = plotSection.getString(plot);
-		    			try {
-		    				plotMap.put(plot, UUID.fromString(owner));
-		    			} catch (IllegalArgumentException e) {
-		    				plotMap.put(plot, null);
-		    			}
-		    		}
-	    		}
-	    	}
-    	}
-    }
-
-    /**
-     * Save config to disk
-     */
-    public synchronized void saveMyConfig() {
-    	
-    	ConfigurationSection worlds = this.getConfig().createSection("worlds");
-    	for (String world : worldPlots.keySet()) {
-    		Map<String, UUID> plotMap = worldPlots.get(world);
-    		ConfigurationSection plots = worlds.createSection(world);
-    		for (String plot : plotMap.keySet()) {
-    			UUID uuid = plotMap.get(plot);
-    			if (uuid == null) {
-    				plots.set(plot, "");
-    			} else {
-    				plots.set(plot, uuid.toString());
-    			}
-    		}
-    	}
-    	this.getConfig().set("Foo", "Bar");
-
-    	this.saveConfig();
-    }
-    
-    /**
-     * Get the maximum number of plots a player can have
-     * @return
-     */
-    public int getMaxPlots() {
-    	int max = this.getConfig().getInt("maxPlots");
-    	return max;
-    }
 
     /**
      * Set the maximum number of plots a player can have
      * 
-     * @param max
      */
-    public void setMaxPlots(int max) {
-    	this.getConfig().set("maxPlots", max);
+    public boolean setMaxPlots(String worldName, String areaName, int maxPlots) {
+    	String path = String.format("areas.%s.%s", worldName, areaName);
+    	if(this.getConfig().contains(path)) {
+    		ConfigurationSection area = this.getConfig().getConfigurationSection(path);
+    		area.set("maxPlots", maxPlots);
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
+    
+    
+    /**
+     * Get the maximum number of plots for an area per player
+     */
+    public int getMaxPlots(String worldName, String areaName) {
+    	String path = String.format("areas.%s.%s.maxPlots", worldName, areaName);
+    	return this.getConfig().getInt(path, -1);
+    }
+    
+    
+    /**
+     * Create a new plot area
+     * 
+     * @return Return true of a new area was created, otherwise, return fasle
+     */
+    public boolean createArea(String worldName, String areaName) {
+    	String path = String.format("areas.%s.%s.maxPlots", worldName, areaName);
+    	boolean exists = this.getConfig().contains(path);
+    	if (exists) {
+    		return false;
+    	}    	
+    	ConfigurationSection areas = Util.getOrCreateSection(this.getConfig(), "areas");
+    	ConfigurationSection world = Util.getOrCreateSection(areas, worldName);
+    	ConfigurationSection area = Util.getOrCreateSection(world, areaName);
+    	area.set("maxPlots", -1);
+    	return true;
+    }
+    
+    
+    /**
+     * Remove a plot area
+     * 
+     * @return Returns true of the area was removed
+     */
+    public boolean removeArea(String worldName, String areaName) {
+    	String path = String.format("areas.%s.%s", worldName, areaName);
+    	if (this.getConfig().contains(path)) {
+    		this.getConfig().set(path, null);
+    		return true;
+    	} else {
+    		return false;
+    	}
+    }
+    
+    
+    /**
+     * Check to see if an area exists
+     */
+    public boolean isArea(String worldName, String areaName) {
+    	String path = String.format("areas.%s.%s", worldName, areaName);
+    	return this.getConfig().contains(path);
+    }
+    
+    
+    /**
+     * Get a list of all the maxPlot data from the DB
+     */
+    public List<MaxInfo> getMaxPlotInfo() {
+    	List<MaxInfo> list = new ArrayList<MaxInfo>();
+    	ConfigurationSection worlds = this.getConfig().getConfigurationSection("areas");
+    	if (worlds == null) {
+    		return list;
+    	}
+    	for (String worldName : worlds.getKeys(false)) {
+    		ConfigurationSection world = worlds.getConfigurationSection(worldName);
+	    	for (String areaName : world.getKeys(false)) {
+	    		ConfigurationSection area = world.getConfigurationSection(areaName);
+	    		list.add(new MaxInfo(worldName, areaName, area.getInt("maxPlots")));
+	    	}
+    	}
+    	return list;
+    }
+
     
     /**
      * Add a new plot to the plot database
      * 
-     * @param world
-     * @param plot
      */
-    public synchronized void addPlot(String world, String plot) {
-    	Map<String, UUID> plotMap = worldPlots.get(world);
-    	if (plotMap == null) {
-    		plotMap = new TreeMap<String, UUID>();
-    		worldPlots.put(world, plotMap);
-    	}
-    	plotMap.put(plot, null);
+    public void addPlot(String worldName, String plotName, String areaName) {
+    	ConfigurationSection plots = Util.getOrCreateSection(this.getConfig(), "plots");
+    	ConfigurationSection world = Util.getOrCreateSection(plots, worldName);
+    	ConfigurationSection plot = Util.getOrCreateSection(world, plotName);
+    	plot.set("areaName", areaName);
+    	plot.set("dateCreated", dateFormat.format(new Date()));
     }
 
+    
     /**
      * Remove a plot from the plot database
      * 
-     * @param world
-     * @param plot
      */
-    public synchronized void removePlot(String world, String plot) {
-    	Map<String, UUID> plotMap = worldPlots.get(world);
-    	if (plotMap != null) {
-    		plotMap.remove(plot);
-    		if (plotMap.isEmpty()) {
-    				worldPlots.remove(world);
-    		}
+    public void removePlot(String worldName, String plotName) {
+    	String path = String.format("plots.%s.%s", worldName, plotName);
+    	if (this.getConfig().contains(path)) {
+    		this.getConfig().set(path, null);
     	}
     }
+    
     
     /**
      * Check to see if the requested name is in the plot database
      * 
-     * @param world
-     * @param plot
-     * @return
+     * Plots are located at
+     * 
+     * worlds.WORLD.AREA.plotname
+     * 
      */
-    public synchronized boolean isPlot(String world, String plot) {
-    	Map<String, UUID> plotMap = worldPlots.get(world);
-    	if (plotMap != null) {
-    		return plotMap.containsKey(plot);
-    	}
-    	return false;
+    public boolean isPlot(String worldName, String plotName) {
+    	String path = String.format("plots.%s.%s", worldName, plotName);
+    	return this.getConfig().contains(path);
     }
+    
     
     /**
      * Set the owner of a plot in the database.
-     * Set the owner to null to make the plot /claim able
+     * Set the owner to null to make the plot /claim-able
      * 
-     * @param world
-     * @param plot
-     * @param player
      */
-    public synchronized void setPlotOwner(String world, String plot, UUID owner) {
-    	Map<String, UUID> plotMap = worldPlots.get(world);
-    	if (plotMap != null) {
-    		plotMap.put(plot, owner);
+    public void setPlotOwner(String worldName, String plotName, Player player) {
+    	String path = String.format("plots.%s.%s", worldName, plotName);
+    	ConfigurationSection plot = this.getConfig().getConfigurationSection(path);
+    	if (plot == null) {
+    		throw new IllegalArgumentException("worldName and plotName do not specifiy a plot");
     	}
-    }
-
-    public synchronized UUID getPlotOwner(String world, String plot) {
-    	Map<String, UUID> plotMap = worldPlots.get(world);
-    	if (plotMap == null) {
-    		return null;
+    	if (player == null) {
+	    	plot.set("ownerName", null);
+	    	plot.set("ownerID", null);
+	    	plot.set("dateClaimed", null);
     	} else {
-    		return plotMap.get(plot);
+	    	plot.set("ownerName", player.getName());
+	    	plot.set("ownerID", player.getUniqueId().toString());
+	    	plot.set("dateClaimed", dateFormat.format(new Date()));
     	}
     }
 
+  
     /**
-     * Return a list of all the plots a player has
+     * Given a player, world, and area tuple, count the number of plots the player has
+     * of this type
+     * 
+     * @return
+     */
+    public int countPlayerAreaPlots(String worldName, UUID playerID, String areaName) {
+    	String path = String.format("plots.%s", worldName);
+    	ConfigurationSection plots = this.getConfig().getConfigurationSection(path);
+    	if (plots == null) {
+    		return 0;
+    	}
+
+    	int count = 0;
+    	String id = playerID.toString();
+    	for (String plotName : plots.getKeys(false)) {
+    		ConfigurationSection plot = plots.getConfigurationSection(plotName);
+    		if (id.equals(plot.getString("ownerID")) && areaName.equals(plot.getString("areaName"))) {
+    			count++;
+    		}
+    	}
+    	return count;
+    }
+    
+    
+    /**
+     * Get information about a plot
+     */
+    public PlotInfo getPlotInfo(String worldName, String plotName) {
+    	String path = String.format("plots.%s.%s", worldName, plotName);
+    	if (this.getConfig().contains(path)) {
+	    	ConfigurationSection plot = this.getConfig().getConfigurationSection(path);
+	    	return new PlotInfo(
+	    			worldName,
+	    			plotName,
+	    			plot.getString("areaName"),
+	    			plot.getString("ownerName"),
+	    			plot.getString("ownerID"),
+	    			plot.getString("dateCreated"),
+	    			plot.getString("dateClaimed")
+	    			);
+    	} else {
+    		return null;
+    	}
+    }
+
+    
+    /**
+     * List all the plots a player has.
      * 
      * This command has to check all the plots to generate the list
      * 
-     * @param player
-     * @return
      */
-    public synchronized List<String> getAllPlayerPlots(UUID player) {
-    	List<String> list = new LinkedList<String>();
-    	if (player == null) {
+    public List<PlotInfo> getAllOwnerPlots(UUID playerID) {
+    	List<PlotInfo> list = new ArrayList<PlotInfo>();
+    	if (playerID == null) {
     		return list;
     	}
-
-    	for (Map<String, UUID> plotMap : worldPlots.values()) {
-    		for (String plot : plotMap.keySet()) {
-    			if (player.equals(plotMap.get(plot))) {
-    				list.add(plot);
-    			}
-    		}
+    	String id = playerID.toString();
+    	ConfigurationSection proot = this.getConfig().getConfigurationSection("plots");
+    	for (String worldName : proot.getKeys(false)) {
+    		ConfigurationSection world = proot.getConfigurationSection(worldName);
+			for (String plotName : world.getKeys(false)) {
+				ConfigurationSection plot = world.getConfigurationSection(plotName);
+				String ownerName = plot.getString("ownerName");
+				String ownerID = plot.getString("ownerID");
+				if (ownerName == null || ownerID == null) {
+					continue;
+				}
+				if (ownerID.equals(id)) {
+					list.add(new PlotInfo(
+							worldName,
+							plotName,
+							plot.getString("areaName"),
+							ownerName,
+							ownerID,
+							plot.getString("dateCreated"),
+							plot.getString("dateClaimed")
+							));
+				}
+			}
+    	}
+    	return list;
+    }
+    
+    
+    /**
+     * List all the plots a player has.
+     * 
+     * This command has to check all the plots to generate the list
+     * 
+     * TODO: This routine is slightly broken in that the most recent player name
+     * is not used. If a player has changed their name, this routine won't work
+     * correctly
+     * 
+     */
+    public List<PlotInfo> getAllOwnerPlots(String playerName) {
+    	List<PlotInfo> list = new ArrayList<PlotInfo>();
+    	if (playerName == null) {
+    		return list;
+    	}
+    	ConfigurationSection proot = this.getConfig().getConfigurationSection("plots");
+    	for (String worldName : proot.getKeys(false)) {
+    		ConfigurationSection world = proot.getConfigurationSection(worldName);
+			for (String plotName : world.getKeys(false)) {
+				ConfigurationSection plot = world.getConfigurationSection(plotName);
+				String ownerName = plot.getString("ownerName");
+				String ownerID = plot.getString("ownerID");
+				if (ownerName == null || ownerID == null) {
+					continue;
+				}
+				if (ownerID.equalsIgnoreCase(playerName)) {
+					list.add(new PlotInfo(
+							worldName,
+							plotName,
+							plot.getString("areaName"),
+							ownerName,
+							ownerID,
+							plot.getString("dateCreated"),
+							plot.getString("dateClaimed")
+							));
+				}
+			}
     	}
     	return list;
     }
@@ -329,106 +438,105 @@ public class NerdPlotPlugin extends JavaPlugin {
      *   We fix by removing the player from the plot.
      *   
      */
-    public synchronized void cleanupDatabase(CommandSender sender) {
-    	for (String worldName : worldPlots.keySet()) {
-    		
-    		// List of all plots and their owners for this world
-    		Map<String, UUID> plotMap = worldPlots.get(worldName);
- 
-    		// Lookup the bukkit world with this name
-    		List<World> worlds = this.getServer().getWorlds();
-    		World world = null;
-    		for (World w : worlds) {
-    			if (w.getName().equalsIgnoreCase(worldName)) {
-    				world = w;
-    				break;
-    			}
-    		}
-    		if (world == null) {
-    			// World does not exist. Delete it
-    			worldPlots.remove(worldName);
-    			if (sender != null) {
-    				sender.sendMessage(ChatColor.RED + "Removing world: " + worldName);
-    			}
-    		} else {
-    			RegionManager manager = wg.getRegionManager(world);
-    			
-    			// At this point, we have a region manager and a world and a list of plots to check
-    			Iterator<String> itr = plotMap.keySet().iterator();
-    			while (itr.hasNext()) {
-    				String plot = itr.next();
-    				ProtectedRegion rg = manager.getRegion(plot);
-    				if (rg == null) {
-    					// The region does not exist in WG. Remove the plot
-    					itr.remove();
-    					if (sender != null) {
-    						sender.sendMessage(ChatColor.RED + "Removed plot " + worldName + ":" + plot);
-    					}
-    				} else {
-    					UUID uuid = plotMap.get(plot);
-    					if (uuid == null) {
-    						// Ignore the empty string owner
-    						continue;
-    					}
-    					if (!rg.getOwners().contains(uuid)) {
-    						// This region has a new owner. Remove the old one from the plotdb
-    						plotMap.put(plot, null);
-    						if(sender != null) {
-    							Player p = this.getServer().getPlayer(uuid);
-    							String ownerName;
-    							if (p == null) {
-    								ownerName = "<unknown>";
-    							} else {
-    								ownerName = p.getName();
-    							}
-    							sender.sendMessage(ChatColor.RED + "Removed owner \"" + ownerName + "\" from plot " + worldName + ":" + plot);
-    						}
-    					}
-    				}
-    			}
-    			if (plotMap.isEmpty()) {
-    				worldPlots.remove(worldName);
-    			}
-    		}
-    	}
-    }
-	
-	public void lookupPlayerUUID(String name, FutureCallback<DefaultDomain> callback) {
-		// The below is copied from SK89q docs on getting owner names
-		// We have to use it or UUIDs will be displayed in Minecraft instead of player names
-		String[] input = new String[] { name };
-		ProfileService profiles = wg.getProfileService();
-		DomainInputResolver resolver = new DomainInputResolver(profiles, input);
-		resolver.setLocatorPolicy(UserLocatorPolicy.UUID_ONLY);
-		ListenableFuture<DefaultDomain> future = this.executor.submit(resolver);
+//    public void cleanupDatabase(CommandSender sender) {
+//    	ConfigurationSection worlds = this.getConfig().getConfigurationSection("worlds");
+//    	for (String worldName : worlds.getKeys(false)) {
+//    		
+//            // Check out each world. Each world must exist
+//    		ConfigurationSection world = worlds.getConfigurationSection(worldName);
+//    		World bukkitWorld = this.getServer().getWorld(worldName);
+//    		if (bukkitWorld == null) {
+//    			if (sender != null) {
+//    				sender.sendMessage(ChatColor.RED + "Removing world: " + worldName);
+//    			}
+//    			worlds.set(worldName, null);
+//    			continue;
+//    		}
+//    		
+//    		// Get the WG manager
+//    		RegionManager manager = wg.getRegionManager(bukkitWorld);
+//    		if (manager == null) {
+//    			if (sender != null) {
+//    				sender.sendMessage(ChatColor.RED + "No World Guard manager for " + worldName + ": skipping ...");
+//    			}
+//    			continue;
+//    		}
+//    		
+//    		// Enumerate every area and plot in this world
+//    		for (String areaName : world.getKeys(false)) {
+//    			ConfigurationSection area = world.getConfigurationSection(areaName);
+//    			for (String plotName : area.getKeys(false)) {
+//    				ConfigurationSection plot = area.getConfigurationSection(plotName);
+//    				String ownerID = plot.getString("ownerID");
+//    				
+//    				// Attempt to get the WG plot
+//    				ProtectedRegion rg = manager.getRegion(plotName);
+//    				if (rg == null) {
+//    					// The region does not exist in WG. Remove the plot
+//    					area.set(plotName, null);
+//    					if (sender != null) {
+//    						sender.sendMessage(ChatColor.RED + "Removed plot " + worldName + ":" + areaName + ":" + plot);
+//    					}
+//    					continue;
+//    				}
+//    				
+//    				// If this plot does not have an owner, we are set
+//    				if (ownerID == null) {
+//    					continue;
+//    				}
+//
+//    				// This plot has an owner. See if it is in WG
+//    				UUID ownerUUID = UUID.fromString(ownerID);
+//    				if(!rg.getOwners().contains(ownerUUID)) {
+//						// This region has a different or no owner. Remove the old one from the plotdb
+//						plot.set("ownerID", null);
+//						plot.set("dateClaimed", null);
+//						if(sender != null) {
+//							Player p = this.getServer().getPlayer(ownerUUID);
+//							String ownerName;
+//							if (p == null) {
+//								ownerName = "<unknown>";
+//							} else {
+//								ownerName = p.getName();
+//							}
+//							sender.sendMessage(ChatColor.RED + "Removed owner \"" + ownerName + "\" from plot " + worldName + ":" + areaName + ":" + plot);
+//						}
+//    				}
+//    			}
+//    		}
+//    	}
+//    }
 
-		// Add a callback using Guava
-		Futures.addCallback(future, callback);
-	}
 
     public String getCmdName() {
     	return cmdName;
     }
     
+    
     public Logger getLog() {
     	return log;
     }
 
+    
     public WorldGuardPlugin getWG() {
     	return wg;
     }
+    
     
     public WorldEditPlugin getWE() {
     	return we;
     }
     
+    
     public void logInfo(String msg) {
     	log.info("[" + cmdName + "] " + msg);
     }
     
+    
     public void logWarning(String msg) {
     	log.warning("[" + cmdName + "] " + msg);
     }
+    
     
     public void logSevere(String msg) {
     	log.severe("[" + cmdName + "] " + msg);

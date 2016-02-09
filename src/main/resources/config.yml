@@ -1,2 +1,1 @@
-version: ${project.version}
-maxPlots: 1
+nerdPlotVersion: ${project.version}

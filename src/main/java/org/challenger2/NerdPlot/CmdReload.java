@@ -2,41 +2,42 @@ package org.challenger2.NerdPlot;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.PluginDescriptionFile;
 
-public class CmdVersion implements NerdPlotCommand {
+public class CmdReload implements NerdPlotCommand {
 
+	
 	private final NerdPlotPlugin plugin;
-	private static final String name = "version";
-	private static final String permission = "nerdplot.version";
-
-	public CmdVersion(NerdPlotPlugin plugin) {
+	private static final String name = "reload";
+	private static final String permission = "nerdplot.reload";
+	
+	
+	public CmdReload(NerdPlotPlugin plugin) {
 		this.plugin = plugin;
 	}
-
+	
+	
 	@Override
 	public void execute(CommandSender sender, String[] args) {
+		// Check arguments and permissions
 		if (!sender.hasPermission(permission)) {
 			plugin.printUsage(sender);
 			return;
 		}
 		
-		PluginDescriptionFile desc = plugin.getDescription();
-		sender.sendMessage(String.format("%sAuthor: %s, Version: %s",
-				ChatColor.GREEN,
-				desc.getAuthors(),
-				desc.getVersion()
-				));
-		return;
+		if (args.length != 0) {
+			printUsage(sender);
+			return;
+		}
+		plugin.reloadConfig();
+		sender.sendMessage(ChatColor.GREEN + "Configuration reloaded");
 	}
-	
-	
+
 	@Override
 	public String getName() {
 		return name;
 	}
-	
 
+	
 	@Override
 	public void printUsage(CommandSender sender) {
 		if(sender.hasPermission(permission)) {
