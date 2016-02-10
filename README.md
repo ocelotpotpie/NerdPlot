@@ -6,7 +6,7 @@ Player Manual
 -------------
 
 #### /nerdplot claim
-Claim the plot you are standing in
+Claim the plot you are standing in. You can only have so many plots for each type of area.
 
 #### /nerdplot list
 Name all the plots you are in. You can use worldguard /region commands to find out more about your plots (such as where they are).
@@ -45,6 +45,12 @@ Set the new maximum number of plots each player may have
 #### /nerdplot list \<player\>
 List all the plots a player has.
 
+#### /nerdplot createarea \<areaname\>
+Create a new area. Players can only claim so many plots within a given area.
+
+#### /nerdplot removearea \<areaname\>
+Remove an area. If a region is part of a delete area, no one will be able to claim it.
+
 #### /nerdplot cleanup
 Look for any regions that have been deleted or any regions a plot owner is no longer a member of. If any such inconsistencies are found, the player will be removed from /nerdplot so they won’t have rogue plots that are not really there (The plots would otherwise count towards their max plot count).
 This command will run automatically on plugin load each server reboot.
@@ -68,6 +74,8 @@ lol?
 * nerdplot.create
 * nerdplot.addowner
 * nerdplot.removeowner
+* nerdplot.createarea
+* nerdplot.removearea
 * nerdplot.cleanup
 * nerdplot.version
 
