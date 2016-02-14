@@ -72,6 +72,7 @@ lol?
 * nerdplot.max
 * nerdplot.setmax
 * nerdplot.create
+* nerdplot.remove
 * nerdplot.addowner
 * nerdplot.removeowner
 * nerdplot.createarea

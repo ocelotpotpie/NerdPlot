@@ -39,6 +39,10 @@ public class CmdClaim implements NerdPlotCommand {
 
 		// Get the plot we want from PH.
 		ProtectedRegion plot = ph.getPlot();
+		if (plot == null) {
+			sender.sendMessage(ChatColor.RED + "You must stand in a plot to claim it");
+			return;
+		}
 		if(plot.getOwners().getPlayers().size() != 0) {
 			sender.sendMessage(ChatColor.RED + "This plot already has an owner in this region");
 		}
