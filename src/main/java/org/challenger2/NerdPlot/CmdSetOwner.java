@@ -39,22 +39,13 @@ public class CmdSetOwner implements NerdPlotCommand {
 			return;
 		}
 
-
 		// Find the plot we are standing in
 		ProtectedRegion plot = ph.getPlot();
 		if (plot == null) {
 			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to add the owner to");
 			return;
 		}
-		
-		// FIXME Find a better way to get the UUID from the player name
-		//
-		// One Idea. Create an Async task and query WorldEdit for the player to UUID lookup.
-		// Then, put a task in a synchronized queue.
-		// Next, schedule an Bukkit event to dispatch the queue every second or something
-		// synchronously.
-		//
-		// Right now we will query bukkit and use whatever it gives us.
+	
 		@SuppressWarnings("deprecation")
 		OfflinePlayer owner = plugin.getServer().getOfflinePlayer(newOwnerName);
 		if (owner == null) {
@@ -62,6 +53,7 @@ public class CmdSetOwner implements NerdPlotCommand {
 			return;
 		} else {
 			plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner.getName(), owner.getUniqueId());
+			plot.getOwners().addPlayer(owner.getUniqueId());
 			sender.sendMessage(ChatColor.GREEN + "New owner set");
 			plugin.saveConfig();
 		}
