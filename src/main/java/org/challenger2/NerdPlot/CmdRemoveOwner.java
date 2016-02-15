@@ -50,7 +50,7 @@ public class CmdRemoveOwner implements NerdPlotCommand {
 			sender.sendMessage(ChatColor.RED + "This plot does already not have an owner");
 		} else {
 			plot.getOwners().removePlayer(UUID.fromString(pinfo.ownerID));
-			plugin.setPlotOwner(ph.getWorldName(), plot.getId(), null);
+			plugin.setPlotOwner(ph.getWorldName(), plot.getId(), null, null);
 			plugin.saveConfig();
 			sender.sendMessage(ChatColor.GREEN + pinfo.ownerName + " removed from plot " + plot.getId());
 		}

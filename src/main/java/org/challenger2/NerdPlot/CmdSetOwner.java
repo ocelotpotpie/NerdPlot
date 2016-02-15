@@ -1,8 +1,8 @@
 package org.challenger2.NerdPlot;
 
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
@@ -56,13 +56,12 @@ public class CmdSetOwner implements NerdPlotCommand {
 		//
 		// Right now we will query bukkit and use whatever it gives us.
 		@SuppressWarnings("deprecation")
-		Player owner = plugin.getServer().getPlayer(newOwnerName);
+		OfflinePlayer owner = plugin.getServer().getOfflinePlayer(newOwnerName);
 		if (owner == null) {
-			sender.sendMessage(ChatColor.RED + "Unknown player");
-			sender.sendMessage(ChatColor.RED + "The player may have to be logged in for this to work (Known Bug)");
+			sender.sendMessage(ChatColor.RED + "Unknown player \"" + newOwnerName + "\"");
 			return;
 		} else {
-			plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner);
+			plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner.getName(), owner.getUniqueId());
 			sender.sendMessage(ChatColor.GREEN + "New owner set");
 			plugin.saveConfig();
 		}

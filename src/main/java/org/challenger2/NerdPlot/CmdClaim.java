@@ -43,18 +43,21 @@ public class CmdClaim implements NerdPlotCommand {
 			sender.sendMessage(ChatColor.RED + "You must stand in a plot to claim it");
 			return;
 		}
-		if(plot.getOwners().getPlayers().size() != 0) {
-			sender.sendMessage(ChatColor.RED + "This plot already has an owner in this region");
+		if (plot.getOwners().contains(ph.getPlayerID())) {
+			sender.sendMessage(ChatColor.GREEN + "You already own this plot");
+			return;
 		}
-		
+		if(plot.getOwners().size() != 0) {
+			sender.sendMessage(ChatColor.RED + "This plot already has an owner in this region");
+			return;
+		}
 		int claimedPlots = plugin.countPlayerAreaPlots(ph.getWorldName(), ph.getPlayerID(), ph.getAreaName());
 		int maxPlots     = plugin.getMaxPlots(ph.getWorldName(), ph.getAreaName());
 		if (claimedPlots >= maxPlots){
 			sender.sendMessage(ChatColor.RED + "You already have the maximum number of plots. Please contact a moderator");
 			return;
 		}
-		
-		plugin.setPlotOwner(ph.getWorld().getName(), ph.getPlot().getId(), ph.getPlayer());
+		plugin.setPlotOwner(ph.getWorld().getName(), ph.getPlot().getId(), ph.getPlayer().getName(), ph.getPlayer().getUniqueId());
 		plugin.saveConfig();
 		plot.getOwners().addPlayer(ph.getPlayerID());
 		sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");

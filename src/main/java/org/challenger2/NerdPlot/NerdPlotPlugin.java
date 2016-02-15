@@ -19,7 +19,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 public class NerdPlotPlugin extends JavaPlugin {
@@ -283,19 +282,19 @@ public class NerdPlotPlugin extends JavaPlugin {
      * Set the owner to null to make the plot /claim-able
      * 
      */
-    public void setPlotOwner(String worldName, String plotName, Player player) {
+    public void setPlotOwner(String worldName, String plotName, String playerName, UUID playerID) {
     	String path = String.format("plots.%s.%s", worldName, plotName);
     	ConfigurationSection plot = this.getConfig().getConfigurationSection(path);
     	if (plot == null) {
     		throw new IllegalArgumentException("worldName and plotName do not specifiy a plot");
     	}
-    	if (player == null) {
+    	if (playerID == null || playerName == null) {
 	    	plot.set("ownerName", null);
 	    	plot.set("ownerID", null);
 	    	plot.set("dateClaimed", null);
     	} else {
-	    	plot.set("ownerName", player.getName());
-	    	plot.set("ownerID", player.getUniqueId().toString());
+	    	plot.set("ownerName", playerName);
+	    	plot.set("ownerID", playerID.toString());
 	    	plot.set("dateClaimed", dateFormat.format(new Date()));
     	}
     }
@@ -388,51 +387,7 @@ public class NerdPlotPlugin extends JavaPlugin {
     	}
     	return list;
     }
-    
-    
-    /**
-     * List all the plots a player has.
-     * 
-     * This command has to check all the plots to generate the list
-     * 
-     * TODO: This routine is slightly broken in that the most recent player name
-     * is not used. If a player has changed their name, this routine won't work
-     * correctly
-     * 
-     */
-    public List<PlotInfo> getAllOwnerPlots(String playerName) {
-    	List<PlotInfo> list = new ArrayList<PlotInfo>();
-    	if (playerName == null) {
-    		return list;
-    	}
-    	ConfigurationSection proot = this.getConfig().getConfigurationSection("plots");
-    	if (proot == null) {
-    		return list;
-    	}
-    	for (String worldName : proot.getKeys(false)) {
-    		ConfigurationSection world = proot.getConfigurationSection(worldName);
-			for (String plotName : world.getKeys(false)) {
-				ConfigurationSection plot = world.getConfigurationSection(plotName);
-				String ownerName = plot.getString("ownerName");
-				String ownerID = plot.getString("ownerID");
-				if (ownerName == null || ownerID == null) {
-					continue;
-				}
-				if (ownerName.equalsIgnoreCase(playerName)) {
-					list.add(new PlotInfo(
-							worldName,
-							plotName,
-							plot.getString("areaName"),
-							ownerName,
-							ownerID,
-							plot.getString("dateCreated"),
-							plot.getString("dateClaimed")
-							));
-				}
-			}
-    	}
-    	return list;
-    }
+  
  
     /**
      * Clean the worldPlots database.

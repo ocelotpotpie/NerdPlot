@@ -1,9 +1,9 @@
 package org.challenger2.NerdPlot;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
 public class CmdList implements NerdPlotCommand {
@@ -45,17 +45,15 @@ public class CmdList implements NerdPlotCommand {
 				}
 			}
 		} else if (args.length == 1) {
-			List<PlotInfo> plotInfo;
-			try {
-				UUID playerID = UUID.fromString(args[0]);
-				plotInfo = plugin.getAllOwnerPlots(playerID);
-			} catch (IllegalArgumentException e) {
-				//TODO: Find a way to convert player name to UUID
-				// The below uses the players last known name
-				plotInfo = plugin.getAllOwnerPlots(args[0]);
+			String playerName = args[0];
+			@SuppressWarnings("deprecation")
+			OfflinePlayer player = plugin.getServer().getOfflinePlayer(playerName);
+			if (player == null) {
+				sender.sendMessage(ChatColor.RED + "Unknown player \"" + playerName + "\"");
+				return;
 			}
-			sender.sendMessage(ChatColor.RED + "NOTE: This command does not take player renames into account!");
-			if (plotInfo.size() == 0) {
+			List<PlotInfo> plotInfo = plugin.getAllOwnerPlots(player.getUniqueId());
+			if (plotInfo == null || plotInfo.size() == 0) {
 				sender.sendMessage(ChatColor.GREEN + args[1] + " does not have any plots");
 			} else {
 				for (PlotInfo info : plotInfo ) {
