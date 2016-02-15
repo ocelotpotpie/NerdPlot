@@ -361,6 +361,9 @@ public class NerdPlotPlugin extends JavaPlugin {
     	}
     	String id = playerID.toString();
     	ConfigurationSection proot = this.getConfig().getConfigurationSection("plots");
+    	if (proot == null) {
+    		return list;
+    	}
     	for (String worldName : proot.getKeys(false)) {
     		ConfigurationSection world = proot.getConfigurationSection(worldName);
 			for (String plotName : world.getKeys(false)) {
@@ -403,6 +406,9 @@ public class NerdPlotPlugin extends JavaPlugin {
     		return list;
     	}
     	ConfigurationSection proot = this.getConfig().getConfigurationSection("plots");
+    	if (proot == null) {
+    		return list;
+    	}
     	for (String worldName : proot.getKeys(false)) {
     		ConfigurationSection world = proot.getConfigurationSection(worldName);
 			for (String plotName : world.getKeys(false)) {
@@ -412,7 +418,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 				if (ownerName == null || ownerID == null) {
 					continue;
 				}
-				if (ownerID.equalsIgnoreCase(playerName)) {
+				if (ownerName.equalsIgnoreCase(playerName)) {
 					list.add(new PlotInfo(
 							worldName,
 							plotName,

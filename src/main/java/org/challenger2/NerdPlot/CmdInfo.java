@@ -23,6 +23,12 @@ public class CmdInfo implements NerdPlotCommand {
 			plugin.printUsage(sender);
 			return;
 		}
+		
+		if (args.length > 0) {
+			sender.sendMessage(ChatColor.RED + "ERROR: Too many arguments");
+			printUsage(sender);
+			return;
+		}
 
 		// Setup player helper
 		PlayerHelper ph = new PlayerHelper(plugin, sender);
