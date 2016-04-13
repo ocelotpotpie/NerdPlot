@@ -19,7 +19,20 @@ public class MaxInfo {
 	
 	
 	public void print(CommandSender sender) {
-		sender.sendMessage(String.format("%sworld: %s, area: %s, max plots %d", ChatColor.GREEN, worldName, areaName, maxPlots));
+		StringBuilder sb = new StringBuilder();
+		sb.append(ChatColor.GREEN);
+		sb.append("World: ");
+		sb.append(ChatColor.AQUA);
+		sb.append(worldName);
+		sb.append(ChatColor.GREEN);
+		sb.append(", Area: ");
+		sb.append(ChatColor.AQUA);
+		sb.append(areaName);
+		sb.append(ChatColor.GREEN);
+		sb.append(", Max Plots: ");
+		sb.append(ChatColor.AQUA);
+		sb.append(maxPlots);
+		sender.sendMessage(sb.toString());
 	}
 	
 	

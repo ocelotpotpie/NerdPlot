@@ -19,7 +19,6 @@ public class CmdMax implements NerdPlotCommand {
 
 	@Override
 	public void execute(CommandSender sender, String[] args) {
-		
 		if (args.length == 0) {
 			// Get max
 			if (!sender.hasPermission(permission)) {
@@ -107,7 +106,7 @@ public class CmdMax implements NerdPlotCommand {
 			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name);
 		}
 		if(sender.hasPermission(setmaxPermission)) {
-			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name + " <areaName> <newMax> [<worldName>]");
+			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name + " <area name> <new max> [<worldName>]");
 		}
 	}
 }

@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 		addCommand(new CmdCreateArea(this));
 		addCommand(new CmdRemoveArea(this));
 		addCommand(new CmdClean(this));
+		addCommand(new CmdStats(this));
 		addCommand(new CmdReload(this));
 		addCommand(new CmdVersion(this));
     }
@@ -386,6 +388,59 @@ public class NerdPlotPlugin extends JavaPlugin {
 			}
     	}
     	return list;
+    }
+    
+    
+    /**
+     * Get a list
+     * @param sender
+     */
+    public void printPlotStats(CommandSender sender) {
+    	ConfigurationSection plotRoot = this.getConfig().getConfigurationSection("plots");
+    	if (plotRoot == null) {
+    		sender.sendMessage(ChatColor.GREEN + "No Plots Found");
+    		return;
+    	}
+    	// Loop over every world.
+    	for (String worldName : plotRoot.getKeys(false)) {
+        	int freePlots = 0;
+        	int usedPlots = 0;
+        	HashMap<String, PlotStats> stats = new HashMap<String, PlotStats>();
+        	ConfigurationSection world = plotRoot.getConfigurationSection(worldName);
+        	
+        	// Loop over all the plots in the world and group the stats by area
+        	for (String plotName : world.getKeys(false)) {
+        		ConfigurationSection plot = world.getConfigurationSection(plotName);
+        		String areaName = plot.getString("areaName");
+        		if (areaName == null) {
+        			continue; // Skip invalid plots
+        		}
+        		PlotStats s = stats.get(areaName);
+        		if (s == null) {
+        			s = new PlotStats(areaName);
+        			stats.put(areaName, s);
+        		}
+        		String ownerID = plot.getString("ownerID");
+        		if (ownerID == null) {
+        			freePlots++;
+        			stats.get(areaName).addFree();
+        		} else {
+        			usedPlots++;
+        			stats.get(areaName).addUsed();
+        		}
+        	}
+        	
+        	sender.sendMessage(ChatColor.GREEN + "WORLD: " + ChatColor.AQUA + worldName);
+        	sender.sendMessage(ChatColor.GREEN + "  Free Plots:  " + ChatColor.AQUA + freePlots);
+        	sender.sendMessage(ChatColor.GREEN + "  Used Plots:  " + ChatColor.AQUA + usedPlots);
+        	sender.sendMessage(ChatColor.GREEN + "  Total Plots: " + ChatColor.AQUA + (freePlots + usedPlots));
+        	for (PlotStats s : stats.values()) {
+        		sender.sendMessage(ChatColor.GREEN + "  Area:   " + ChatColor.AQUA + s.getArea());
+        		sender.sendMessage(ChatColor.GREEN + "    Free Plots:  " + ChatColor.AQUA + s.getFree());
+        		sender.sendMessage(ChatColor.GREEN + "    Used Plots:  " + ChatColor.AQUA + s.getUsed());
+        		sender.sendMessage(ChatColor.GREEN + "    Total Plots: " + ChatColor.AQUA + s.getTotal());
+        	}
+    	}
     }
   
  

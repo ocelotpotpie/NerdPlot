@@ -25,6 +25,12 @@ public class CmdRemove implements NerdPlotCommand {
 			return;
 		}
 		
+		if (args.length != 1 || !args[0].equalsIgnoreCase("-f")) {
+			sender.sendMessage(ChatColor.RED + "Use -f if you are SURE you want to delete this plot forever!?!?");
+			sender.sendMessage(ChatColor.RED + "(Forever is a long time)");
+			printUsage(sender);
+			return;
+		}
 		
 		// Setup player helper
 		PlayerHelper ph = new PlayerHelper(plugin, sender);
@@ -60,7 +66,7 @@ public class CmdRemove implements NerdPlotCommand {
 	@Override
 	public void printUsage(CommandSender sender) {
 		if(sender.hasPermission(permission)) {
-			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name);
+			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name + " -f");
 		}
 	}
 

@@ -16,6 +16,8 @@ permissions:
     description: List plots you own
   nerdplot.info:
     description: Shows information about the current plot
+  nerdplot.infoany:
+    description: Shows information about any named plot
   nerdplot.listany:
     description: List plots owned by anyone
   nerdplot.max:
@@ -36,6 +38,8 @@ permissions:
     description: Permission to remove a plot area
   nerdplot.clean:
     description: Find any inconsistencies between the /plot database and World Guard
+  nerdplot.stats:
+    description: Print plot statistics
   nerdplot.reload:
     description: Reload configuration
   nerdplot.version:

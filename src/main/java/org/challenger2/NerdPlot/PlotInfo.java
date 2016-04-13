@@ -31,13 +31,13 @@ public class PlotInfo {
 	 * @return 
 	 */
 	public void print(CommandSender sender) {
-		sender.sendMessage(ChatColor.GREEN + "  World Name: " + fixNull(worldName));
-		sender.sendMessage(ChatColor.GREEN + "  Plot Name: " + fixNull(plotName));
-		sender.sendMessage(ChatColor.GREEN + "  Area Name: " + fixNull(areaName));
-		sender.sendMessage(ChatColor.GREEN + "  Owner Name: " + fixNull(ownerName));
-		sender.sendMessage(ChatColor.GREEN + "  Owner ID: " + fixNull(ownerID));
-		sender.sendMessage(ChatColor.GREEN + "  Date Created: " + fixNull(dateCreated));
-		sender.sendMessage(ChatColor.GREEN + "  Date Claimed: " + fixNull(dateClaimed));
+		sender.sendMessage(ChatColor.GREEN + "  World Name:   " + ChatColor.AQUA + fixNull(worldName));
+		sender.sendMessage(ChatColor.GREEN + "  Plot Name:    " + ChatColor.AQUA + fixNull(plotName));
+		sender.sendMessage(ChatColor.GREEN + "  Area Name:    " + ChatColor.AQUA + fixNull(areaName));
+		sender.sendMessage(ChatColor.GREEN + "  Owner Name:   " + ChatColor.AQUA + fixNull(ownerName));
+		sender.sendMessage(ChatColor.GREEN + "  Owner ID:     " + ChatColor.AQUA + fixNull(ownerID));
+		sender.sendMessage(ChatColor.GREEN + "  Date Created: " + ChatColor.AQUA + fixNull(dateCreated));
+		sender.sendMessage(ChatColor.GREEN + "  Date Claimed: " + ChatColor.AQUA + fixNull(dateClaimed));
 	}
 	
 	
@@ -46,7 +46,7 @@ public class PlotInfo {
 	 */
 	private String fixNull(String s) {
 		if (s == null) {
-			return "<UNKNOWN>";
+			return "";
 		} else {
 			return s;
 		}

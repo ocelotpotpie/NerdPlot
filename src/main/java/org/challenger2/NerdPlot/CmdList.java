@@ -41,7 +41,7 @@ public class CmdList implements NerdPlotCommand {
 				sender.sendMessage(ChatColor.GREEN + "You do not have any plots");
 			} else {
 				for (PlotInfo info : plotInfo ) {
-					sender.sendMessage(ChatColor.GREEN + "  Area: " + info.areaName + ", " + info.plotName);
+					sender.sendMessage(ChatColor.GREEN + "Area: " + ChatColor.AQUA + info.areaName + ChatColor.GREEN + ", Plot: " + ChatColor.AQUA + info.plotName);
 				}
 			}
 		} else if (args.length == 1) {
@@ -57,7 +57,7 @@ public class CmdList implements NerdPlotCommand {
 				sender.sendMessage(ChatColor.GREEN + args[1] + " does not have any plots");
 			} else {
 				for (PlotInfo info : plotInfo ) {
-					sender.sendMessage(ChatColor.GREEN + "  Area: " + info.areaName + ", Plot: " + info.plotName);
+					sender.sendMessage(ChatColor.GREEN + "Area: " + ChatColor.AQUA + info.areaName + ChatColor.GREEN + ", Plot: " + ChatColor.AQUA + info.plotName);
 				}
 			}
 		} else {
