@@ -58,7 +58,7 @@ Create a new area. Players can only claim so many plots within a given area.
 #### /nerdplot removearea \<areaname\>
 Remove an area. If a region is part of a delete area, no one will be able to claim it.
 
-#### /nerdplot cleanup
+#### /nerdplot cleanup [-f]
 Look for any regions that have been deleted or any regions a plot owner is no longer a member of. If any such inconsistencies are found, the player will be removed from /nerdplot so they won’t have rogue plots that are not really there (The plots would otherwise count towards their max plot count).
 This command will run automatically on plugin load each server reboot.
 

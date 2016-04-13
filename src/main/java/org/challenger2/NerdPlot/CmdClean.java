@@ -22,11 +22,26 @@ public class CmdClean implements NerdPlotCommand {
 			return;
 		}
 
-		if (args.length != 0) {
+		if (args.length > 1) {
 			printUsage(sender);
 			return;
 		}
-		sender.sendMessage(ChatColor.RED + "This command does not exist yet");		
+		
+		boolean force = false;
+		if (args.length == 1) {
+			if (args[0].equals("-f")) {
+				force = true;
+			} else {
+				printUsage(sender);
+				return;
+			}
+		}
+
+		plugin.cleanupDatabase(sender, force);
+		if (force) {
+			plugin.saveConfig();
+		}
+		sender.sendMessage(ChatColor.GREEN + "Cleanup Complete.");		
 	}
 	
 	
@@ -39,7 +54,7 @@ public class CmdClean implements NerdPlotCommand {
 	@Override
 	public void printUsage(CommandSender sender) {
 		if(sender.hasPermission(permission)) {
-			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name);
+			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name + " [-f]");
 		}
 	}
 }

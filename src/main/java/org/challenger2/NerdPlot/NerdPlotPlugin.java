@@ -4,22 +4,28 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 public class NerdPlotPlugin extends JavaPlugin {
@@ -454,74 +460,104 @@ public class NerdPlotPlugin extends JavaPlugin {
      *   We fix by removing the player from the plot.
      *   
      */
-//    public void cleanupDatabase(CommandSender sender) {
-//    	ConfigurationSection worlds = this.getConfig().getConfigurationSection("worlds");
-//    	for (String worldName : worlds.getKeys(false)) {
-//    		
-//            // Check out each world. Each world must exist
-//    		ConfigurationSection world = worlds.getConfigurationSection(worldName);
-//    		World bukkitWorld = this.getServer().getWorld(worldName);
-//    		if (bukkitWorld == null) {
-//    			if (sender != null) {
-//    				sender.sendMessage(ChatColor.RED + "Removing world: " + worldName);
-//    			}
-//    			worlds.set(worldName, null);
-//    			continue;
-//    		}
-//    		
-//    		// Get the WG manager
-//    		RegionManager manager = wg.getRegionManager(bukkitWorld);
-//    		if (manager == null) {
-//    			if (sender != null) {
-//    				sender.sendMessage(ChatColor.RED + "No World Guard manager for " + worldName + ": skipping ...");
-//    			}
-//    			continue;
-//    		}
-//    		
-//    		// Enumerate every area and plot in this world
-//    		for (String areaName : world.getKeys(false)) {
-//    			ConfigurationSection area = world.getConfigurationSection(areaName);
-//    			for (String plotName : area.getKeys(false)) {
-//    				ConfigurationSection plot = area.getConfigurationSection(plotName);
-//    				String ownerID = plot.getString("ownerID");
-//    				
-//    				// Attempt to get the WG plot
-//    				ProtectedRegion rg = manager.getRegion(plotName);
-//    				if (rg == null) {
-//    					// The region does not exist in WG. Remove the plot
-//    					area.set(plotName, null);
-//    					if (sender != null) {
-//    						sender.sendMessage(ChatColor.RED + "Removed plot " + worldName + ":" + areaName + ":" + plot);
-//    					}
-//    					continue;
-//    				}
-//    				
-//    				// If this plot does not have an owner, we are set
-//    				if (ownerID == null) {
-//    					continue;
-//    				}
-//
-//    				// This plot has an owner. See if it is in WG
-//    				UUID ownerUUID = UUID.fromString(ownerID);
-//    				if(!rg.getOwners().contains(ownerUUID)) {
-//						// This region has a different or no owner. Remove the old one from the plotdb
-//						plot.set("ownerID", null);
-//						plot.set("dateClaimed", null);
-//						if(sender != null) {
-//							Player p = this.getServer().getPlayer(ownerUUID);
-//							String ownerName;
-//							if (p == null) {
-//								ownerName = "<unknown>";
-//							} else {
-//								ownerName = p.getName();
-//							}
-//							sender.sendMessage(ChatColor.RED + "Removed owner \"" + ownerName + "\" from plot " + worldName + ":" + areaName + ":" + plot);
-//						}
-//    				}
-//    			}
-//    		}
-//    	}
-//    }
+    public void cleanupDatabase(CommandSender sender, boolean force) {
+    	Set<String> missingAreas = new HashSet<String>();
+    	ConfigurationSection plots = this.getConfig().getConfigurationSection("plots");
+    	if (plots == null) {
+    		return;
+    	}
+    	for (String worldName : plots.getKeys(false)) {
+    		
+            // Check out each world. Each world must exist
+    		ConfigurationSection world = plots.getConfigurationSection(worldName);
+    		World bukkitWorld = this.getServer().getWorld(worldName);
+    		if (bukkitWorld == null) {
+    			if (sender != null) {
+    				if (force) {
+    					sender.sendMessage(ChatColor.RED + "Removing world: " + ChatColor.AQUA + worldName);
+    				} else {
+    					sender.sendMessage(ChatColor.RED + "Would remove world: " + ChatColor.AQUA + worldName);
+    				}
+    			}
+    			if (force) {
+    				plots.set(worldName, null);
+    			}
+    			continue;
+    		}
+    		
+    		// Get the WG manager
+    		RegionManager manager = wg.getRegionManager(bukkitWorld);
+    		if (manager == null) {
+    			if (sender != null) {
+    				sender.sendMessage(ChatColor.RED + "No World Guard manager for " + worldName + ": skipping ...");
+    			}
+    			continue;
+    		}
+    		
+    		// Enumerate every area and plot in this world
+    		for (String plotName : world.getKeys(false)) {
+    			ConfigurationSection plot = world.getConfigurationSection(plotName);
+    			String areaName = plot.getString("areaName");
+    			String ownerID = plot.getString("ownerID");
+
+    			// Attempt to get the WG plot
+    			ProtectedRegion rg = manager.getRegion(plotName);
+    			if (rg == null) {
+    				// The region does not exist in WG. Remove the plot
+    				if (sender != null) {
+    					if (force) {
+    						sender.sendMessage(ChatColor.RED + "Removed plot " + ChatColor.AQUA + worldName + ":" + plotName);
+    					} else {
+    						sender.sendMessage(ChatColor.RED + "Would remove plot " + ChatColor.AQUA + worldName + ":" + plotName);
+    					}
+    				}
+    				if (force) {
+    					world.set(plotName, null);
+    				}
+    				continue;
+    			}
+
+    			//Check to see if the area exists
+    			if (!isArea(worldName, areaName)) {
+    				missingAreas.add(areaName);
+    			}
+
+				// If this plot does not have an owner, we are set
+				if (ownerID == null) {
+					continue;
+				}
+
+				// This plot has an owner. See if it is in WG
+				UUID ownerUUID = UUID.fromString(ownerID);
+				if(!rg.getOwners().contains(ownerUUID)) {
+					// This region has a different or no owner. Remove the old one from the plotdb
+					if(sender != null) {
+						Player p = this.getServer().getPlayer(ownerUUID);
+						String ownerName;
+						if (p == null) {
+							ownerName = "<unknown>";
+						} else {
+							ownerName = p.getName();
+						}
+						if (force) {
+							sender.sendMessage(ChatColor.RED + "Removed owner \"" + ChatColor.AQUA + ownerName + ChatColor.RED + "\" from plot " + ChatColor.AQUA + worldName + ":" + plotName);
+						} else {
+							sender.sendMessage(ChatColor.RED + "Would remove owner \"" + ChatColor.AQUA + ownerName + ChatColor.RED + "\" from plot " + ChatColor.AQUA + worldName + ":" + plotName);
+						}
+					}
+					if (force) {
+						plot.set("ownerID", null);
+						plot.set("ownerName", null);
+						plot.set("dateClaimed", null);
+					}
+    			}
+    		}
+    	}
+    	
+    	for (String missing : missingAreas) {
+    		sender.sendMessage(ChatColor.RED + "Missing area: " + ChatColor.AQUA + missing);
+    	}
+    }
 
 
     public String getCmdName() {

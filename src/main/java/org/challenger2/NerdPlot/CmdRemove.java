@@ -66,7 +66,7 @@ public class CmdRemove implements NerdPlotCommand {
 	@Override
 	public void printUsage(CommandSender sender) {
 		if(sender.hasPermission(permission)) {
-			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name + " -f");
+			sender.sendMessage(ChatColor.GREEN + "/" + plugin.getName() + " " + name + " [-f]");
 		}
 	}
 
