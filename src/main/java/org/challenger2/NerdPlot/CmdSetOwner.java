@@ -42,7 +42,7 @@ public class CmdSetOwner implements NerdPlotCommand {
 		// Find the plot we are standing in
 		ProtectedRegion plot = ph.getPlot();
 		if (plot == null) {
-			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to add the owner to");
+			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to add the owner to.");
 			return;
 		}
 	

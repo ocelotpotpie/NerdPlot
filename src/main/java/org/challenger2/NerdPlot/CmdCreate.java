@@ -43,7 +43,7 @@ public class CmdCreate implements NerdPlotCommand {
 		}
 
     	if (!plugin.isArea(ph.getWorldName(), areaName)) {
-    		sender.sendMessage(ChatColor.RED + "Area does not exist");
+    		sender.sendMessage(ChatColor.RED + "Area does not exist.");
     		return;
     	}
 
@@ -53,7 +53,7 @@ public class CmdCreate implements NerdPlotCommand {
 			String parentName = args[1];
 			parent = ph.getManager().getRegion(parentName);
 			if (parent == null) {
-				sender.sendMessage(ChatColor.RED + "Parent region does not exist");
+				sender.sendMessage(ChatColor.RED + "Parent region does not exist.");
 				return;
 			}
 		}
@@ -66,7 +66,7 @@ public class CmdCreate implements NerdPlotCommand {
     	}
 
     	if(!ProtectedRegion.isValidId(plotName)) {
-    		sender.sendMessage(ChatColor.RED + "Invalid region/plot name");
+    		sender.sendMessage(ChatColor.RED + "Invalid region/plot name.");
     		return;
     	}
 
@@ -89,7 +89,7 @@ public class CmdCreate implements NerdPlotCommand {
 		plugin.addPlot(ph.getWorldName(), plotName, areaName);
 		plugin.saveConfig();
 
-		sender.sendMessage(ChatColor.GREEN + "Plot " + plotName + " Created");
+		sender.sendMessage(ChatColor.GREEN + "Plot " + plotName + " Created.");
 
 	}
 	

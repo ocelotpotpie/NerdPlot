@@ -26,10 +26,10 @@ public class CmdInfo implements NerdPlotCommand {
 		if( !((permA && args.length == 0) ||
 		      (permB && args.length == 1))) {
 			if (permA || permB) {
-				sender.sendMessage(ChatColor.RED + "ERROR: Bad arguments");
+				sender.sendMessage(ChatColor.RED + "ERROR: Bad arguments.");
 				printUsage(sender); // show usage for this command
 			} else {
-				sender.sendMessage(ChatColor.RED + "ERROR: Invalid Command");
+				sender.sendMessage(ChatColor.RED + "ERROR: Invalid Command.");
 				plugin.printUsage(sender); 
 			}
 			return;
@@ -46,7 +46,7 @@ public class CmdInfo implements NerdPlotCommand {
 			// Find the plot we are standing in
 			plot = ph.getPlot();
 			if (plot == null) {
-				sender.sendMessage(ChatColor.RED + "You must stand in a plot to get plot info");
+				sender.sendMessage(ChatColor.RED + "You must stand in a plot to get plot info.");
 				return;
 			}
 		} else {

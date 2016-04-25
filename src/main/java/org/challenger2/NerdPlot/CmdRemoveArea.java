@@ -37,10 +37,10 @@ public class CmdRemoveArea implements NerdPlotCommand {
 		
 		String areaName = args[0];
 		if (plugin.removeArea(ph.getWorldName(), areaName)) {
-			sender.sendMessage(ChatColor.GREEN + "Area remove");
+			sender.sendMessage(ChatColor.GREEN + "Area remove.");
 			plugin.saveConfig();
 		} else {
-			sender.sendMessage(ChatColor.RED + "Area does not exist");
+			sender.sendMessage(ChatColor.RED + "Area does not exist.");
 		}
 	}
 

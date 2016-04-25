@@ -37,10 +37,10 @@ public class CmdCreateArea implements NerdPlotCommand {
 		
 		String areaName = args[0];
 		if (plugin.createArea(ph.getWorldName(), areaName)) {
-			sender.sendMessage(ChatColor.GREEN + "Area created");
+			sender.sendMessage(ChatColor.GREEN + "Area created.");
 			plugin.saveConfig();
 		} else {
-			sender.sendMessage(ChatColor.RED + "Area already exists");
+			sender.sendMessage(ChatColor.RED + "Area already exists.");
 		}
 		
 	}

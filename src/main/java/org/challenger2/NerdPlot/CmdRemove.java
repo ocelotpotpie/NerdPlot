@@ -41,7 +41,7 @@ public class CmdRemove implements NerdPlotCommand {
 		// Find the plot we are standing in
 		ProtectedRegion plot = ph.getPlot();
 		if (plot == null) {
-			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to remove");
+			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to remove.");
 			return;
 		}
 		String plotName = plot.getId();
@@ -49,9 +49,9 @@ public class CmdRemove implements NerdPlotCommand {
     	if (plugin.isPlot(ph.getWorldName(), plotName)) {
     		plugin.removePlot(ph.getWorldName(), plotName);
     		ph.getManager().removeRegion(plotName);
-    		sender.sendMessage(ChatColor.GREEN + "Plot " + plotName + " removed");
+    		sender.sendMessage(ChatColor.GREEN + "Plot " + plotName + " removed.");
     	} else {
-    		sender.sendMessage(ChatColor.RED + "Plot " + plotName + " does not exist");
+    		sender.sendMessage(ChatColor.RED + "Plot " + plotName + " does not exist.");
     	}
 
 	}

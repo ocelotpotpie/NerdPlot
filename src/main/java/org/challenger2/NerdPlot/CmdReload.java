@@ -29,7 +29,7 @@ public class CmdReload implements NerdPlotCommand {
 			return;
 		}
 		plugin.reloadConfig();
-		sender.sendMessage(ChatColor.GREEN + "Configuration reloaded");
+		sender.sendMessage(ChatColor.GREEN + "Configuration reloaded.");
 	}
 
 	@Override

@@ -41,7 +41,7 @@ public class CmdRemoveOwner implements NerdPlotCommand {
 		// Find the plot we are standing in
 		ProtectedRegion plot = ph.getPlot();
 		if (plot == null) {
-			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to remove the owner from");
+			sender.sendMessage(ChatColor.RED + "You must stand in the plot you want to remove the owner from.");
 			return;
 		}
 
