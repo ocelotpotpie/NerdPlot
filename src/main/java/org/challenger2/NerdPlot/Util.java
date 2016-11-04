@@ -17,8 +17,9 @@ public class Util {
 	}
 	
 	public static String generatePlotName(String areaName, Map<String,ProtectedRegion> regions) {
+        String areaNameLower = areaName.toLowerCase();
 		for (int i = 0; i < 10000; i++) {
-			String name = String.format("%s_%04d", areaName, i);
+			String name = String.format("%s_%04d", areaNameLower, i);
 			if (!regions.containsKey(name)) {
 				return name;
 			}
