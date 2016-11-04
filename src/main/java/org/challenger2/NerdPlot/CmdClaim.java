@@ -57,14 +57,47 @@ public class CmdClaim implements NerdPlotCommand {
 			sender.sendMessage(ChatColor.RED + "You already have the maximum number of plots. Please contact a moderator.");
 			return;
 		}
-		plugin.setPlotOwner(ph.getWorld().getName(), ph.getPlot().getId(), ph.getPlayer().getName(), ph.getPlayer().getUniqueId());
+		plugin.setPlotOwner(ph.getWorldName(), ph.getPlot().getId(), ph.getPlayerName(), ph.getPlayerID());
 		plugin.saveConfig();
-		plot.getOwners().addPlayer(ph.getPlayerID());
+
+		// Fire off a command to WorldGuard to add players. This ensures the WG
+		// UUID cache is properly updated and a UUID isn't displayed instead of the
+		// player name.
+		
+		// Option A
+		// Just set the owner. But WorldGuard will not cache the user name
+		//plot.getOwners().addPlayer(ph.getPlayerID());
+		sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
+		
+		// Option B
+		String cmd = "region addowner -w " + ph.getWorldName() + " " + plot.getId() + " " + ph.getPlayerName();
+		plugin.getLogger().info("Running command: /" + cmd);
+		plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd);
 		sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
 
-		// Ensure the player UUID and name is in the World Guard database, else /rg info shows the UUID only.
-		AsyncUUIDLookup lookup = new AsyncUUIDLookup(plugin, ph.getPlayerName());
-		lookup.runTaskAsynchronously(plugin);
+//		 /// Option C
+//		 /// ( Code adopted from World Guard own add owner command )
+//         // Resolve owners asynchronously
+		// Gets "Unknown function: getProfileService() error"
+//		String[] ids = new String[1];
+//		ids[0] = ph.getPlayerID().toString();
+//
+//        DomainInputResolver resolver = new DomainInputResolver(
+//                plugin.getWG().getProfileService(), ids);
+//        resolver.setLocatorPolicy(UserLocatorPolicy.UUID_ONLY);
+//
+//        // Then add it to the owners
+//        ListenableFuture<DefaultDomain> future = Futures.transform(
+//                plugin.getWG().getExecutorService().submit(resolver),
+//                resolver.createAddAllFunction(plot.getOwners()));
+//        
+//        AsyncCommandHelper.wrap(future, plugin.getWG(), sender)
+//        .formatUsing(plot.getId(), ph.getWorldName())
+//        .registerWithSupervisor("Adding owners to the plot '%s' on '%s'")
+//        .sendMessageAfterDelay("(Please wait... querying player names...)")
+//        .thenRespondWith("Plot '%s' updated with new owners.", "Failed to add new owners. Contact a mod for assistance.");
+//
+//        sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
 	}
 	
 	

@@ -22,7 +22,7 @@ Shows the maximum number of plots you are allowed to have
 
 Mod Manual
 ----------
-####/nerdplot create <prefix> [\<parent\>]
+#### /nerdplot create <prefix> [\<parent\>]
 Create a new region from your current WE selection. Prefix will be used as the region prefix and a numerical suffix will be automatically created. The optional parent parameter will automatically set the new plots parent region.
 
 Example:
