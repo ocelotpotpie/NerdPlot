@@ -14,7 +14,7 @@ Name all the plots you are in. You can use worldguard /region commands to find o
 #### /nerdplot info
 Shows information about the plot you are standing in
 
-#### /nerdplot tp <plot name> [<world name>]
+#### /nerdplot tp \<plot name\> [\<world name\>]
 Teleport to a plot
 
 #### /nerdplot max
@@ -30,10 +30,10 @@ Example:
 And just spam the above command 100 times to get all suburbs!
 
 
-#### /nerdplot remove -f <plot name>
+#### /nerdplot remove -f \<plot name\>
 Remove a plot from nerdplot tracking. If -f is omitted, a friendly warning will be printed.
 
-#### /nerdplot info <plot name>
+#### /nerdplot info \<plot name\>
 Shows information about the named plot
 
 #### /nerdplot setowner \<playername\>
@@ -79,6 +79,7 @@ lol?
 * nerdplot.claim
 * nerdplot.list
 * nerdplot.listany
+* nerdplot.tp
 * nerdplot.max
 * nerdplot.setmax
 * nerdplot.create
