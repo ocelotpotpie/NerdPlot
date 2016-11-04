@@ -67,7 +67,7 @@ public class CmdClaim implements NerdPlotCommand {
 		// Option A
 		// Just set the owner. But WorldGuard will not cache the user name
 		//plot.getOwners().addPlayer(ph.getPlayerID());
-		sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
+		//sender.sendMessage(ChatColor.GREEN + "Plot " + plot.getId() + " has been granted!");
 		
 		// Option B
 		String cmd = "region addowner -w " + ph.getWorldName() + " " + plot.getId() + " " + ph.getPlayerName();
