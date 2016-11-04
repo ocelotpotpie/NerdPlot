@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -30,7 +29,6 @@ import org.bukkit.plugin.Plugin;
 
 public class NerdPlotPlugin extends JavaPlugin {
 
-	private static final Logger log = Logger.getLogger("Minecraft");
 	private static final String cmdName = "nerdplot";
 
 	private WorldGuardPlugin wg;
@@ -50,7 +48,7 @@ public class NerdPlotPlugin extends JavaPlugin {
     public void onEnable() {
 		Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
 		if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
-			logSevere("Failed to load WorldGuard.");
+			getLogger().severe("Failed to load WorldGuard.");
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
@@ -58,7 +56,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 
 		plugin = getServer().getPluginManager().getPlugin("WorldEdit");
 		if (plugin == null || !(plugin instanceof WorldEditPlugin)) {
-			logSevere("Failed to load WorldEdit.");
+			getLogger().severe("Failed to load WorldEdit.");
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
@@ -564,11 +562,6 @@ public class NerdPlotPlugin extends JavaPlugin {
     public String getCmdName() {
     	return cmdName;
     }
-    
-    
-    public Logger getLog() {
-    	return log;
-    }
 
     
     public WorldGuardPlugin getWG() {
@@ -578,21 +571,6 @@ public class NerdPlotPlugin extends JavaPlugin {
     
     public WorldEditPlugin getWE() {
     	return we;
-    }
-    
-    
-    public void logInfo(String msg) {
-    	log.info("[" + cmdName + "] " + msg);
-    }
-    
-    
-    public void logWarning(String msg) {
-    	log.warning("[" + cmdName + "] " + msg);
-    }
-    
-    
-    public void logSevere(String msg) {
-    	log.severe("[" + cmdName + "] " + msg);
     }
 
 }
