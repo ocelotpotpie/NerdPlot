@@ -29,7 +29,6 @@ Example:
 /nerdplot create suburb spawncity
 And just spam the above command 100 times to get all suburbs!
 
-
 #### /nerdplot remove -f \<plot name\>
 Remove a plot from nerdplot tracking. If -f is omitted, a friendly warning will be printed.
 
@@ -38,7 +37,6 @@ Shows information about the named plot
 
 #### /nerdplot setowner \<playername\>
 Add a player to a plot you are standing in. This bypassess the max plot check. The plot will still show up under /nerdplot listplots correctly.
-
 
 Example:
 /nerdplot setowner Challenger2
@@ -73,7 +71,6 @@ Spawn Slime blocks somehow ?
 
 #### /plot murder
 lol?
-
 
 #### Permission Nodes
 * nerdplot.claim
