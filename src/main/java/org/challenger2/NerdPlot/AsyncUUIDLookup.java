@@ -4,8 +4,8 @@ import java.util.UUID;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.sk89q.worldguard.util.profile.Profile;
-import com.sk89q.worldguard.util.profile.resolver.ProfileService;
+import com.sk89q.squirrelid.Profile;
+import com.sk89q.squirrelid.resolver.ProfileService;
 
 
 /**
