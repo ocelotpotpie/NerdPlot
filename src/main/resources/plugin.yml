@@ -16,6 +16,8 @@ permissions:
     description: List plots you own
   nerdplot.info:
     description: Shows information about the current plot
+  nerdplot.tp:
+    description: Teleport to the center of any plot
   nerdplot.infoany:
     description: Shows information about any named plot
   nerdplot.listany:

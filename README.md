@@ -14,6 +14,9 @@ Name all the plots you are in. You can use worldguard /region commands to find o
 #### /nerdplot info
 Shows information about the plot you are standing in
 
+#### /nerdplot tp <plot name> [<world name>]
+Teleport to a plot
+
 #### /nerdplot max
 Shows the maximum number of plots you are allowed to have
 

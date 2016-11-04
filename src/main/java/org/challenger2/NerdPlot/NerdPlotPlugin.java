@@ -67,11 +67,12 @@ public class NerdPlotPlugin extends JavaPlugin {
 		this.saveDefaultConfig();
 		this.getConfig().set("fileFormatVersion", "1.0"); // Set the format version for future use
 
-		// Add commands (in the order we want USAGE to pring)
+		// Add commands (in the order we want USAGE to print)
 		plotCommands = new LinkedHashMap<String, NerdPlotCommand>();
 		addCommand(new CmdClaim(this));
 		addCommand(new CmdInfo(this));
 		addCommand(new CmdList(this));
+		addCommand(new CmdTP(this));
 		addCommand(new CmdMax(this));
 		addCommand(new CmdCreate(this));
 		addCommand(new CmdRemove(this));
