@@ -36,6 +36,11 @@ public class CmdCreateArea implements NerdPlotCommand {
 		}
 		
 		String areaName = args[0];
+		if (!areaName.equals(areaName.toLowerCase())) {
+			sender.sendMessage(ChatColor.RED + "Area names must be in all lower case letters");
+			return;
+		}
+		
 		if (plugin.createArea(ph.getWorldName(), areaName)) {
 			sender.sendMessage(ChatColor.GREEN + "Area created.");
 			plugin.saveConfig();
