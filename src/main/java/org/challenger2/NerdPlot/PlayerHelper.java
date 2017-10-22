@@ -129,8 +129,9 @@ public class PlayerHelper {
 	public String getAreaName() {
 		if (areaName == null) {
 			ProtectedRegion p = getPlot();
-			if (p != null) {
-				areaName = Util.getPlotArea(plot.getId());
+			PlotInfo info = plugin.getPlotInfo(worldName, p.getId());
+			if (info != null) {
+				areaName = info.areaName;
 			}
 		}
 		return areaName;
