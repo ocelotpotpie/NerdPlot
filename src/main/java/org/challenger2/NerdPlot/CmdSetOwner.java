@@ -1,5 +1,7 @@
 package org.challenger2.NerdPlot;
 
+import java.util.UUID;
+
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -51,12 +53,17 @@ public class CmdSetOwner implements NerdPlotCommand {
 		if (owner == null) {
 			sender.sendMessage(ChatColor.RED + "Unknown player \"" + newOwnerName + "\"");
 			return;
-		} else {
-			plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner.getName(), owner.getUniqueId());
-			plot.getOwners().addPlayer(owner.getUniqueId());
-			sender.sendMessage(ChatColor.GREEN + "New owner set");
-			plugin.saveConfig();
 		}
+		
+		PlotInfo plotInfo = this.plugin.getPlotInfo(ph.getWorldName(), plot.getId());
+		UUID currentOwnerUUID = UUID.fromString(plotInfo.ownerID);
+		plot.getOwners().removePlayer(currentOwnerUUID);
+		plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner.getName(), owner.getUniqueId());
+
+		plot.getOwners().addPlayer(owner.getUniqueId());
+		sender.sendMessage(ChatColor.GREEN + "New owner set");
+		plugin.saveConfig();
+		
 	}
 	
 	

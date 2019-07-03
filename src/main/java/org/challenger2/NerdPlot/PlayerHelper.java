@@ -8,10 +8,12 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.IncompleteRegionException;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
-import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -63,7 +65,7 @@ public class PlayerHelper {
     	worldName = world.getName();
     	
     	// Is WG setup in this world?
-    	rm = wg.getRegionManager(world);
+    	rm = Util.getWorldGuardRegionManager(this.world);
     	if (rm == null) {
     		sender.sendMessage(ChatColor.RED + "WorldGuard is not enabled in this world");
     		return;
@@ -112,7 +114,10 @@ public class PlayerHelper {
 		if (plot !=  null) {
 			return plot;
 		}
-		ApplicableRegionSet regions = rm.getApplicableRegions(player.getLocation());
+		Location location = this.player.getLocation();
+		BlockVector3 wrappedVector = BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		ApplicableRegionSet regions = this.rm.getApplicableRegions(wrappedVector);
+
 		for (ProtectedRegion check : regions) {
 			if (plugin.isPlot(worldName, check.getId())) {
 				plot = check;
@@ -142,23 +147,20 @@ public class PlayerHelper {
 	 * Create a new region from the players current WE selection
 	 */
 	public ProtectedRegion regionFromSelection(String regionName) {
-		Selection selection = we.getSelection(player);
-		if (selection == null) {
-			player.sendMessage(ChatColor.RED + "You must make a World Edit selection first");
-			return null;
-		}
-		if (!(selection instanceof CuboidSelection)) {
-			player.sendMessage(ChatColor.RED + "Only Cuboid selections are supported");;
-			return null;
+	    Region selection;
+	    LocalSession localSession = this.we.getSession(this.player);
+	    com.sk89q.worldedit.world.World wrappedWorld = BukkitAdapter.adapt(this.player.getWorld());
+	    try {
+	        selection = localSession.getSelection(wrappedWorld);
+	        if (selection == null) {
+	            throw new IncompleteRegionException();
+	        }
+	    } catch (IncompleteRegionException e) {
+	        this.player.sendMessage(ChatColor.RED + "You must select a region first!");
+	        return null;
 		}
 		
-		// Convert the WE selection into a WG BlockVector
-		Location loc;
-		loc = selection.getMinimumPoint();
-		BlockVector min = new BlockVector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-		loc = selection.getMaximumPoint();
-		BlockVector max = new BlockVector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-		return new ProtectedCuboidRegion(regionName, min, max);
+	    return new ProtectedCuboidRegion(regionName, selection.getMinimumPoint(), selection.getMaximumPoint());
 	}
 	
 	

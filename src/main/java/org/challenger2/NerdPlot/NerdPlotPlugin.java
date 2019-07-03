@@ -1,12 +1,5 @@
 package org.challenger2.NerdPlot;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
-import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,12 +13,20 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.world.World;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class NerdPlotPlugin extends JavaPlugin {
 
@@ -34,7 +35,7 @@ public class NerdPlotPlugin extends JavaPlugin {
 	private WorldGuardPlugin wg;
 	private WorldEditPlugin we;
 	private Map<String, NerdPlotCommand> plotCommands;
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
 
 	/**
@@ -469,7 +470,7 @@ public class NerdPlotPlugin extends JavaPlugin {
     		
             // Check out each world. Each world must exist
     		ConfigurationSection world = plots.getConfigurationSection(worldName);
-    		World bukkitWorld = this.getServer().getWorld(worldName);
+    		org.bukkit.World bukkitWorld = this.getServer().getWorld(worldName);
     		if (bukkitWorld == null) {
     			if (sender != null) {
     				if (force) {
@@ -485,7 +486,8 @@ public class NerdPlotPlugin extends JavaPlugin {
     		}
     		
     		// Get the WG manager
-    		RegionManager manager = wg.getRegionManager(bukkitWorld);
+    		World wrappedWorld = BukkitAdapter.adapt(bukkitWorld);
+    		RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(wrappedWorld);
     		if (manager == null) {
     			if (sender != null) {
     				sender.sendMessage(ChatColor.RED + "No World Guard manager for " + worldName + ": skipping ...");

@@ -1,14 +1,16 @@
 package org.challenger2.NerdPlot;
 
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+
 
 public class CmdTP implements NerdPlotCommand {
 
@@ -58,7 +60,7 @@ public class CmdTP implements NerdPlotCommand {
     		world = player.getWorld();
     	}
     	
-		RegionManager rm = plugin.getWG().getRegionManager(world);
+		RegionManager rm = Util.getWorldGuardRegionManager(world);
 		if (rm == null) {
 			player.sendMessage(ChatColor.RED + "World Guard is not enabled in World: " + world.getName());
 			return;
@@ -73,13 +75,13 @@ public class CmdTP implements NerdPlotCommand {
 		
 		// Just assume all regions are "plots". We will for go the plot check
 		// Find the middle of the region and teleport there
-		BlockVector min = rg.getMinimumPoint();
-		BlockVector max = rg.getMaximumPoint();
+		BlockVector3 min = rg.getMinimumPoint();
+		BlockVector3 max = rg.getMaximumPoint();
 		
 		int x = (min.getBlockX() + max.getBlockX()) / 2;
 		int z = (min.getBlockZ() + max.getBlockZ()) / 2;
 		int y = world.getHighestBlockYAt(x, z);
-		Location dest = new Location(world, (double)x + 0.5, (double)y, (double)z + 0.5);
+		Location dest = new Location(world, x + 0.5, y, z + 0.5);
 		player.teleport(dest);
 	}
 
