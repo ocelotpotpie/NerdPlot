@@ -55,12 +55,18 @@ public class CmdSetOwner implements NerdPlotCommand {
 			return;
 		}
 		
+		// Remove the old owner if there was one.
 		PlotInfo plotInfo = this.plugin.getPlotInfo(ph.getWorldName(), plot.getId());
-		UUID currentOwnerUUID = UUID.fromString(plotInfo.ownerID);
-		plot.getOwners().removePlayer(currentOwnerUUID);
-		plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner.getName(), owner.getUniqueId());
+		if (plotInfo.ownerID != null) {
+			UUID currentOwnerUUID = UUID.fromString(plotInfo.ownerID);
+			plot.getOwners().removePlayer(currentOwnerUUID);
+		}
 
+		// Set the new owner.
+		plugin.setPlotOwner(ph.getWorldName(), plot.getId(), owner.getName(), owner.getUniqueId());
 		plot.getOwners().addPlayer(owner.getUniqueId());
+
+		// All done
 		sender.sendMessage(ChatColor.GREEN + "New owner set");
 		plugin.saveConfig();
 		
